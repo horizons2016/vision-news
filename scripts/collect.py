@@ -34,6 +34,7 @@ EXCLUDED_DAYS = 14        # مدة حفظ سجل المستبعد للمراجع
 MAX_ITEMS_PER_SOURCE = 120
 MAX_BODY_FETCHES = 60     # حد قراءة صفحات الأخبار في التشغيلة الواحدة
 EXCERPT_CHARS = 400
+MAX_AGE_DAYS = 14         # يُتجاهل ما نُشر قبل ذلك (Google News يعيد أخبارًا قديمة جدًا)
 
 session = requests.Session()
 session.headers.update({"User-Agent": UA, "Accept-Language": "ar,en;q=0.8"})
@@ -197,6 +198,9 @@ def run(only: str | None = None, fetch_bodies: bool = True) -> dict:
             if key in seen:
                 continue
             new += 1
+            if it["publishedAt"] and it["publishedAt"] < (datetime.now(timezone.utc) - timedelta(days=MAX_AGE_DAYS)).isoformat():
+                seen[key] = {"v": "too_old", "t": t0}
+                continue
             tk = title_key(it["title"])
             if tk in titles:
                 seen[key] = {"v": "duplicate", "t": t0}
