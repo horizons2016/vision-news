@@ -1,5 +1,5 @@
 {
- "version": "annex2-rules-v2",
+ "version": "annex2-rules-v3",
  "thresholds": {
   "INDICATOR_MIN_SCORE": 2,
   "PRIORITY_MIN_SCORE": 3,
@@ -1193,7 +1193,16 @@
   "عزاء",
   "أسعار الذهب",
   "سعر الذهب",
-  "gold price"
+  "gold price",
+  "البطولة",
+  "بطولة",
+  "ألعاب القوى",
+  "الألعاب الرياضية",
+  "الماراثون",
+  "championship",
+  "athletics",
+  "marathon",
+  "sports"
  ],
  "jordan_markers": [
   "الأردن",

@@ -120,3 +120,27 @@ def test_news_types_and_legislation():
             {"id": "c", "t": "ملتقى للشباب", "s": "x", "d": "2026-11-02", "ty": "event", "lang": "ar"}]
     d = rule_digest(arts)
     assert d[0]["sources"] == 2 and set(d[0]["refs"]) == {"a", "b"} and len(d) == 2
+
+
+def test_newsletter(repo, monkeypatch):
+    tmp, collect, build, ai, common = repo
+    import newsletter
+    collect.run()
+    monkeypatch.setenv("BUILD_TODAY", "2026-11-14")
+    assert build.main() == 0
+    monkeypatch.setattr(newsletter, "SITE", common.SITE)
+    monkeypatch.setattr(newsletter, "STATE", common.STATE)
+    sent = []
+    monkeypatch.setattr(newsletter, "smtp_send", lambda msgs: sent.extend(msgs))
+    monkeypatch.setenv("SMTP_USER", "me@gmail.com")
+    monkeypatch.setenv("RECIPIENTS", "a@x.om, P10\nb@x.om, ALL\nbad-line\nc@x.om, P99")
+    recips, errs = newsletter.parse_recipients(__import__("os").environ["RECIPIENTS"], {f"P{n:02d}" for n in range(1, 13)})
+    assert [r["email"] for r in recips] == ["a@x.om", "b@x.om"] and len(errs) == 2
+    assert newsletter.main(["preview", "--week", "2026-11-08"]) == 0
+    assert sent[-1]["To"] == "me@gmail.com" and sent[-1]["Subject"].startswith("[معاينة]")
+    assert newsletter.main(["send", "--week", "2026-11-08"]) == 0
+    a_msg = next(m for m in sent if m["To"] == "a@x.om")
+    body = a_msg.get_body(("html",)).get_content()
+    assert "الهيدروجين" in body and "ex.om" in body and "<img" not in body
+    with pytest.raises(SystemExit):  # لا إرسال مكرر لنفس الأسبوع
+        newsletter.main(["send", "--week", "2026-11-08"])

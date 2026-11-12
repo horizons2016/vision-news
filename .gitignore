@@ -3,3 +3,4 @@ __pycache__/
 .pytest_cache/
 site/data/
 *.tmp
+data/newsletter_preview.html
