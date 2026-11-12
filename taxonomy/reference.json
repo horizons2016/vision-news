@@ -1,0 +1,488 @@
+{
+ "meta": {
+  "version": "oman2040-annex2-updated-v1",
+  "category": "قائمة المؤشرات المحدثة",
+  "sourceTitle": "الملحق رقم (2) القائمة المحدثة لمؤشرات رؤية عمان 2040",
+  "sourceApprovalDate": null,
+  "approvalDateNote": "تاريخ اعتماد المصدر غير محدد بدقة في المستند",
+  "supersedesNote": "هذه هي القائمة الحالية. التصنيفات القديمة في النظام (وأي قوائم سابقة مثل قائمة الـ68 مؤشرًا أو القائمة المبدئية ذات 44 بندًا) ليست القائمة الحالية."
+ },
+ "axes": [
+  {
+   "id": "axis_1",
+   "number": 1,
+   "nameAr": "الإنسان والمجتمع",
+   "nameEn": "People and Society",
+   "priorities": [
+    1,
+    2,
+    3,
+    4
+   ]
+  },
+  {
+   "id": "axis_2",
+   "number": 2,
+   "nameAr": "الاقتصاد والتنمية",
+   "nameEn": "Economy and Development",
+   "priorities": [
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  },
+  {
+   "id": "axis_3",
+   "number": 3,
+   "nameAr": "البيئة المستدامة",
+   "nameEn": "Sustainable Environment",
+   "priorities": [
+    10
+   ]
+  },
+  {
+   "id": "axis_4",
+   "number": 4,
+   "nameAr": "الحوكمة والأداء المؤسسي",
+   "nameEn": "Governance and Institutional Performance",
+   "priorities": [
+    11,
+    12
+   ]
+  }
+ ],
+ "priorities": [
+  {
+   "number": 1,
+   "nameAr": "التعليم والتعلم والبحث العلمي والقدرات الوطنية",
+   "nameEn": "Education, Learning, Scientific Research and National Capabilities",
+   "stableId": "vision_priority_01"
+  },
+  {
+   "number": 2,
+   "nameAr": "الصحة",
+   "nameEn": "Health",
+   "stableId": "vision_priority_02"
+  },
+  {
+   "number": 3,
+   "nameAr": "الرفاه والحماية الاجتماعية",
+   "nameEn": "Wellbeing and Social Protection",
+   "stableId": "vision_priority_03"
+  },
+  {
+   "number": 4,
+   "nameAr": "المواطنة والهوية والتراث والثقافة الوطنية",
+   "nameEn": "Citizenship, Identity, Heritage and National Culture",
+   "stableId": "vision_priority_04"
+  },
+  {
+   "number": 5,
+   "nameAr": "القيادة والإدارة الاقتصادية",
+   "nameEn": "Economic Leadership and Management",
+   "stableId": "vision_priority_05"
+  },
+  {
+   "number": 6,
+   "nameAr": "التنويع الاقتصادي والاستدامة المالية",
+   "nameEn": "Economic Diversification and Fiscal Sustainability",
+   "stableId": "vision_priority_06"
+  },
+  {
+   "number": 7,
+   "nameAr": "سوق العمل والتشغيل",
+   "nameEn": "Labour Market and Employment",
+   "stableId": "vision_priority_07"
+  },
+  {
+   "number": 8,
+   "nameAr": "القطاع الخاص والاستثمار والتعاون الدولي",
+   "nameEn": "Private Sector, Investment and International Cooperation",
+   "stableId": "vision_priority_08"
+  },
+  {
+   "number": 9,
+   "nameAr": "تنمية المحافظات والمدن المستدامة",
+   "nameEn": "Governorates Development and Sustainable Cities",
+   "stableId": "vision_priority_09"
+  },
+  {
+   "number": 10,
+   "nameAr": "البيئة والموارد الطبيعية",
+   "nameEn": "Environment and Natural Resources",
+   "stableId": "vision_priority_10"
+  },
+  {
+   "number": 11,
+   "nameAr": "التشريع والقضاء والرقابة",
+   "nameEn": "Legislation, Judiciary and Oversight",
+   "stableId": "vision_priority_11"
+  },
+  {
+   "number": 12,
+   "nameAr": "حوكمة الجهاز الإداري للدولة والموارد والمشاريع",
+   "nameEn": "Governance of the State Administrative Apparatus, Resources and Projects",
+   "stableId": "vision_priority_12"
+  }
+ ],
+ "indicators": [
+  {
+   "number": 1,
+   "nameAr": "مؤشر TIMSS — للصف الرابع (Grade 4)",
+   "nameEn": "TIMSS — Grade 4",
+   "stableId": "indicator_01",
+   "priorityStableId": "vision_priority_01",
+   "components": [
+    "الرياضيات",
+    "العلوم"
+   ],
+   "subItems": [
+    {
+     "key": "indicator_01_grade8",
+     "nameAr": "مؤشر TIMSS — للصف الثامن (Grade 8)",
+     "components": [
+      "الرياضيات",
+      "العلوم"
+     ],
+     "needsStructureConfirmation": true,
+     "note": "صف فرعي بلا رقم مستقل في الملحق؛ محفوظ كعنصر فرعي للمؤشر 01 ويحتاج تأكيد هيكلة بطاقة المؤشر"
+    }
+   ]
+  },
+  {
+   "number": 2,
+   "nameAr": "نسبة طلبة التعليم المهني والتقني من إجمالي طلبة التعليم المدرسي",
+   "nameEn": "Share of vocational and technical students in total school students",
+   "stableId": "indicator_02",
+   "priorityStableId": "vision_priority_01",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 3,
+   "nameAr": "عدد الجامعات العمانية المدرجة ضمن أفضل 500 جامعة",
+   "nameEn": "Number of Omani universities in the top 500",
+   "stableId": "indicator_03",
+   "priorityStableId": "vision_priority_01",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 4,
+   "nameAr": "معدل رضا سوق العمل عن كفاءة مخرجات التعليم (المهني والأكاديمي)",
+   "nameEn": "Labour market satisfaction with education outputs (vocational and academic)",
+   "stableId": "indicator_04",
+   "priorityStableId": "vision_priority_01",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 5,
+   "nameAr": "مؤشر الابتكار العالمي",
+   "nameEn": "Global Innovation Index",
+   "stableId": "indicator_05",
+   "priorityStableId": "vision_priority_01",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 6,
+   "nameAr": "نسبة مساهمة القطاع الخاص في الإنفاق على البحث والتطوير",
+   "nameEn": "Private sector share of R&D expenditure",
+   "stableId": "indicator_06",
+   "priorityStableId": "vision_priority_01",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 7,
+   "nameAr": "سنوات الحياة الصحية المتوقعة عند الولادة",
+   "nameEn": "Healthy life expectancy at birth",
+   "stableId": "indicator_07",
+   "priorityStableId": "vision_priority_02",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 8,
+   "nameAr": "معدل رضا المجتمع عن خدمات الرعاية الصحية",
+   "nameEn": "Community satisfaction with healthcare services",
+   "stableId": "indicator_08",
+   "priorityStableId": "vision_priority_02",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 9,
+   "nameAr": "مؤشر الرفاه",
+   "nameEn": "Wellbeing Index",
+   "stableId": "indicator_09",
+   "priorityStableId": "vision_priority_03",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 10,
+   "nameAr": "مؤشر التسامح",
+   "nameEn": "Tolerance Index",
+   "stableId": "indicator_10",
+   "priorityStableId": "vision_priority_04",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 11,
+   "nameAr": "مؤشر الترابط الاجتماعي",
+   "nameEn": "Social Cohesion Index",
+   "stableId": "indicator_11",
+   "priorityStableId": "vision_priority_04",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 12,
+   "nameAr": "مؤشر صون التراث والثقافة",
+   "nameEn": "Heritage and Culture Preservation Index",
+   "stableId": "indicator_12",
+   "priorityStableId": "vision_priority_04",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 13,
+   "nameAr": "مؤشر الاعتزاز بالهوية والمواطنة",
+   "nameEn": "Pride in Identity and Citizenship Index",
+   "stableId": "indicator_13",
+   "priorityStableId": "vision_priority_04",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 14,
+   "nameAr": "معدل نمو الناتج المحلي الإجمالي الحقيقي",
+   "nameEn": "Real GDP growth rate",
+   "stableId": "indicator_14",
+   "priorityStableId": "vision_priority_05",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 15,
+   "nameAr": "مؤشر الجودة التنظيمية",
+   "nameEn": "Regulatory Quality Index",
+   "stableId": "indicator_15",
+   "priorityStableId": "vision_priority_05",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 16,
+   "nameAr": "مؤشر التعقيد الاقتصادي",
+   "nameEn": "Economic Complexity Index",
+   "stableId": "indicator_16",
+   "priorityStableId": "vision_priority_05",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 17,
+   "nameAr": "نسبة مساهمة الأنشطة غير النفطية في الناتج المحلي الإجمالي (بالأسعار الثابتة)",
+   "nameEn": "Non-oil activities share of GDP (constant prices)",
+   "stableId": "indicator_17",
+   "priorityStableId": "vision_priority_06",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 18,
+   "nameAr": "قيمة المعاملات الاقتصادية الخارجة نسبة إلى الناتج المحلي الإجمالي",
+   "nameEn": "Value of outward economic transactions relative to GDP",
+   "stableId": "indicator_18",
+   "priorityStableId": "vision_priority_06",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 19,
+   "nameAr": "معدل نمو الإيرادات غير النفطية",
+   "nameEn": "Non-oil revenue growth rate",
+   "stableId": "indicator_19",
+   "priorityStableId": "vision_priority_06",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 20,
+   "nameAr": "معدل نمو الصادرات الوطنية غير النفطية (بدون إعادة التصدير)",
+   "nameEn": "Growth of national non-oil exports (excluding re-exports)",
+   "stableId": "indicator_20",
+   "priorityStableId": "vision_priority_06",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 21,
+   "nameAr": "نسبة الإنفاق العام إلى الناتج المحلي الإجمالي",
+   "nameEn": "Public expenditure to GDP",
+   "stableId": "indicator_21",
+   "priorityStableId": "vision_priority_06",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 22,
+   "nameAr": "نسبة إجمالي الدين العام إلى الناتج المحلي الإجمالي",
+   "nameEn": "Total public debt to GDP",
+   "stableId": "indicator_22",
+   "priorityStableId": "vision_priority_06",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 23,
+   "nameAr": "معدل الباحثين عن عمل من إجمالي القوى العاملة",
+   "nameEn": "Jobseekers rate of total labour force",
+   "stableId": "indicator_23",
+   "priorityStableId": "vision_priority_07",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 24,
+   "nameAr": "نسبة المشتغلين العمانيين من إجمالي المشتغلين بالقطاع الخاص",
+   "nameEn": "Share of Omanis in total private sector employment",
+   "stableId": "indicator_24",
+   "priorityStableId": "vision_priority_07",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 25,
+   "nameAr": "نسبة العمانيين المشتغلين ذاتيا (صاحب عمل / يعمل لحسابه الخاص) من المشتغلين العمانيين بالقطاع الخاص",
+   "nameEn": "Share of self-employed Omanis among Omanis employed in the private sector",
+   "stableId": "indicator_25",
+   "priorityStableId": "vision_priority_07",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 26,
+   "nameAr": "نسبة المشتغلين العمانيين بوظائف فنية وتخصصية وقيادية من المشتغلين بهذه الوظائف في القطاع الخاص",
+   "nameEn": "Share of Omanis in technical, specialised and leadership private sector jobs",
+   "stableId": "indicator_26",
+   "priorityStableId": "vision_priority_07",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 27,
+   "nameAr": "نسبة مساهمة القطاع الخاص بالناتج المحلي الإجمالي",
+   "nameEn": "Private sector contribution to GDP",
+   "stableId": "indicator_27",
+   "priorityStableId": "vision_priority_08",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 28,
+   "nameAr": "نسبة مساهمة المؤسسات الصغرى والصغيرة والمتوسطة بالناتج المحلي الإجمالي",
+   "nameEn": "Micro, small and medium enterprises contribution to GDP",
+   "stableId": "indicator_28",
+   "priorityStableId": "vision_priority_08",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 29,
+   "nameAr": "نسبة الاستثمار الأجنبي المباشر إلى الناتج المحلي الإجمالي (صافي التدفقات)",
+   "nameEn": "Foreign direct investment to GDP (net inflows)",
+   "stableId": "indicator_29",
+   "priorityStableId": "vision_priority_08",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 30,
+   "nameAr": "نسبة الاستثمار الخاص إلى الناتج المحلي الإجمالي",
+   "nameEn": "Private investment to GDP",
+   "stableId": "indicator_30",
+   "priorityStableId": "vision_priority_08",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 31,
+   "nameAr": "معدل الرضا عن التنمية والخدمات في المحافظة (المتوسط)",
+   "nameEn": "Satisfaction with development and services in the governorate (average)",
+   "stableId": "indicator_31",
+   "priorityStableId": "vision_priority_09",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 32,
+   "nameAr": "إجمالي انبعاثات الغازات الدفيئة",
+   "nameEn": "Total greenhouse gas emissions",
+   "stableId": "indicator_32",
+   "priorityStableId": "vision_priority_10",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 33,
+   "nameAr": "نسبة النفايات المعاد تدويرها من إجمالي النفايات القابلة لإعادة التدوير",
+   "nameEn": "Recycled share of recyclable waste",
+   "stableId": "indicator_33",
+   "priorityStableId": "vision_priority_10",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 34,
+   "nameAr": "نسبة استهلاك الطاقة المتجددة من إجمالي استهلاك الطاقة",
+   "nameEn": "Renewable share of total energy consumption",
+   "stableId": "indicator_34",
+   "priorityStableId": "vision_priority_10",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 35,
+   "nameAr": "نسبة الاكتفاء الذاتي الغذائي",
+   "nameEn": "Food self-sufficiency ratio",
+   "stableId": "indicator_35",
+   "priorityStableId": "vision_priority_10",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 36,
+   "nameAr": "مؤشر فاعلية المنظومة التشريعية والقضائية والرقابية",
+   "nameEn": "Effectiveness of the legislative, judicial and oversight system",
+   "stableId": "indicator_36",
+   "priorityStableId": "vision_priority_11",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 37,
+   "nameAr": "معدل رضا المجتمع عن الخدمات الحكومية",
+   "nameEn": "Community satisfaction with government services",
+   "stableId": "indicator_37",
+   "priorityStableId": "vision_priority_12",
+   "components": [],
+   "subItems": []
+  },
+  {
+   "number": 38,
+   "nameAr": "مؤشر الكفاءة الحكومية",
+   "nameEn": "Government Efficiency Index",
+   "stableId": "indicator_38",
+   "priorityStableId": "vision_priority_12",
+   "components": [],
+   "subItems": []
+  }
+ ]
+}

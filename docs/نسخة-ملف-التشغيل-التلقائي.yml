@@ -1,0 +1,90 @@
+name: رصد وتحديث ونشر
+
+on:
+  schedule:
+    - cron: "23 */3 * * *"          # كل 3 ساعات (بتوقيت UTC)
+  workflow_dispatch:
+    inputs:
+      collect:
+        description: "جمع أخبار جديدة الآن؟"
+        type: boolean
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - "data/decisions.csv"
+      - "config/**"
+      - "taxonomy/**"
+      - "scripts/**"
+      - "site/**"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: vision-news
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: تثبيت المتطلبات
+        run: pip install -r requirements.txt
+
+      - name: فحص القواعد والسكربتات
+        run: python -m pytest -q tests
+
+      - name: جمع الأخبار وتصنيفها
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.collect)
+        run: python scripts/collect.py
+
+      - name: الذكاء الاصطناعي (يعمل فقط إن أُضيف مفتاح في الأسرار)
+        if: github.event_name != 'push'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AI_MODEL: ${{ vars.AI_MODEL }}
+          AI_MAX_ITEMS: ${{ vars.AI_MAX_ITEMS }}
+        run: python scripts/ai.py
+
+      - name: بناء البيانات والتقارير
+        run: python scripts/build.py
+
+      - name: حفظ الأرشيف والتقارير في المستودع
+        run: |
+          git config user.name "vision-news-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data reports
+          if git diff --cached --quiet; then
+            echo "لا تغييرات"
+          else
+            git commit -m "تحديث الرصد $(date -u +'%Y-%m-%d %H:%M') UTC"
+            git pull --rebase --autostash
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

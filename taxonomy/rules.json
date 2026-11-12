@@ -1,0 +1,1437 @@
+{
+ "version": "annex2-rules-v2",
+ "thresholds": {
+  "INDICATOR_MIN_SCORE": 2,
+  "PRIORITY_MIN_SCORE": 3,
+  "MAX_INDICATORS_PER_ARTICLE": 4,
+  "CLOSE_RATIO": 0.75
+ },
+ "priority_terms": {
+  "vision_priority_01": [
+   "التعليم",
+   "تعليمي",
+   "تعليمية",
+   "المدارس",
+   "مدرسة",
+   "الطلبة",
+   "الطلاب",
+   "المعلمين",
+   "المعلمات",
+   "المناهج",
+   "جامعة",
+   "الجامعات",
+   "التعليم العالي",
+   "البحث العلمي",
+   "الابتكار",
+   "منح دراسية",
+   "البعثات الدراسية",
+   "الكليات",
+   "education",
+   "school",
+   "students",
+   "university",
+   "universities",
+   "research",
+   "innovation",
+   "curriculum",
+   "scholarship"
+  ],
+  "vision_priority_02": [
+   "الصحة",
+   "الصحي",
+   "صحية",
+   "مستشفى",
+   "المستشفيات",
+   "المراكز الصحية",
+   "وزارة الصحة",
+   "الرعاية الصحية",
+   "المرضى",
+   "الأطباء",
+   "التطعيم",
+   "الأمراض",
+   "health",
+   "hospital",
+   "healthcare",
+   "patients",
+   "clinic",
+   "vaccine",
+   "disease"
+  ],
+  "vision_priority_03": [
+   "الحماية الاجتماعية",
+   "صندوق الحماية الاجتماعية",
+   "الضمان الاجتماعي",
+   "منفعة",
+   "المنافع",
+   "كبار السن",
+   "ذوي الإعاقة",
+   "الأسر المستحقة",
+   "التنمية الاجتماعية",
+   "الرفاه",
+   "جودة الحياة",
+   "الدعم الاجتماعي",
+   "social protection",
+   "welfare",
+   "wellbeing",
+   "social security",
+   "elderly",
+   "disabilities",
+   "pension"
+  ],
+  "vision_priority_04": [
+   "الهوية الوطنية",
+   "المواطنة",
+   "التراث",
+   "الثقافة",
+   "ثقافي",
+   "ثقافية",
+   "المتحف",
+   "الآثار",
+   "الحرف التقليدية",
+   "التسامح",
+   "التعايش",
+   "الترابط الاجتماعي",
+   "اللغة العربية",
+   "الموروث",
+   "heritage",
+   "culture",
+   "museum",
+   "unesco",
+   "citizenship",
+   "tolerance",
+   "national identity"
+  ],
+  "vision_priority_05": [
+   "الناتج المحلي الإجمالي",
+   "النمو الاقتصادي",
+   "الإدارة الاقتصادية",
+   "السياسة الاقتصادية",
+   "التضخم",
+   "التصنيف الائتماني",
+   "البيئة التنظيمية",
+   "الإصلاحات الاقتصادية",
+   "البنك المركزي",
+   "gdp",
+   "economic growth",
+   "inflation",
+   "credit rating",
+   "regulatory",
+   "economic complexity",
+   "central bank",
+   "بورصة مسقط",
+   "سوق الأسهم",
+   "Muscat Stock Exchange",
+   "MSX",
+   "stock exchange",
+   "الأوراق المالية",
+   "هيئة الخدمات المالية"
+  ],
+  "vision_priority_06": [
+   "التنويع الاقتصادي",
+   "غير النفطي",
+   "غير النفطية",
+   "الميزانية العامة",
+   "الموازنة",
+   "الإيرادات",
+   "الإنفاق العام",
+   "الدين العام",
+   "العجز المالي",
+   "الفائض المالي",
+   "الصادرات",
+   "الاستدامة المالية",
+   "الصناعات التحويلية",
+   "ضريبة",
+   "diversification",
+   "non oil",
+   "budget",
+   "revenue",
+   "revenues",
+   "public debt",
+   "deficit",
+   "exports",
+   "fiscal",
+   "السياحة",
+   "السياحي",
+   "السياحية",
+   "tourism",
+   "tourist",
+   "tourists",
+   "الخدمات اللوجستية",
+   "اللوجستي",
+   "اللوجستية",
+   "logistics",
+   "التعدين",
+   "mining",
+   "الصناعة",
+   "الصناعية",
+   "industrial",
+   "manufacturing",
+   "الموانئ",
+   "ميناء",
+   "port",
+   "ports",
+   "الطيران",
+   "airline",
+   "airport",
+   "المطار",
+   "الشحن",
+   "shipping",
+   "التجارة",
+   "trade"
+  ],
+  "vision_priority_07": [
+   "التوظيف",
+   "الباحثين عن عمل",
+   "الباحثون عن عمل",
+   "التعمين",
+   "القوى العاملة",
+   "وزارة العمل",
+   "فرص عمل",
+   "وظائف",
+   "التشغيل",
+   "التدريب المهني",
+   "employment",
+   "jobs",
+   "jobseekers",
+   "omanisation",
+   "omanization",
+   "workforce",
+   "labour",
+   "labor",
+   "unemployment"
+  ],
+  "vision_priority_08": [
+   "القطاع الخاص",
+   "الاستثمار",
+   "الاستثمارات",
+   "المستثمرين",
+   "المنطقة الحرة",
+   "المناطق الحرة",
+   "المنطقة الاقتصادية",
+   "المؤسسات الصغيرة والمتوسطة",
+   "ريادة الأعمال",
+   "الشراكة بين القطاعين",
+   "التعاون الدولي",
+   "اتفاقية تعاون",
+   "مذكرة تفاهم",
+   "private sector",
+   "investment",
+   "investor",
+   "investors",
+   "free zone",
+   "sme",
+   "smes",
+   "fdi",
+   "memorandum",
+   "منتدى الأعمال",
+   "منتدى أعمال",
+   "business forum",
+   "التبادل التجاري",
+   "الشراكة الاقتصادية",
+   "الشراكة الاستثمارية",
+   "economic partnership",
+   "trade exchange",
+   "bilateral trade",
+   "اتفاقيات",
+   "agreements",
+   "agreement",
+   "المستثمر",
+   "غرفة تجارة وصناعة عمان",
+   "chamber of commerce",
+   "OCCI",
+   "جهاز الاستثمار العماني",
+   "Oman Investment Authority",
+   "OIA"
+  ],
+  "vision_priority_09": [
+   "المحافظة",
+   "المحافظات",
+   "اللامركزية",
+   "برنامج تنمية المحافظات",
+   "المجالس البلدية",
+   "المجلس البلدي",
+   "البلدية",
+   "التخطيط العمراني",
+   "المدن المستدامة",
+   "المدن الذكية",
+   "الإسكان",
+   "البنية الأساسية",
+   "governorate",
+   "governorates",
+   "municipal",
+   "urban",
+   "smart city",
+   "housing",
+   "infrastructure",
+   "النقل",
+   "الطرق",
+   "طريق",
+   "رصف",
+   "transport",
+   "road",
+   "roads",
+   "highway",
+   "الصرف الصحي",
+   "الكهرباء",
+   "مياه الشرب",
+   "sewage",
+   "electricity"
+  ],
+  "vision_priority_10": [
+   "البيئة",
+   "البيئية",
+   "المناخ",
+   "التغير المناخي",
+   "الانبعاثات",
+   "الكربون",
+   "النفايات",
+   "التدوير",
+   "الطاقة المتجددة",
+   "الطاقة الشمسية",
+   "طاقة الرياح",
+   "الهيدروجين الأخضر",
+   "الأمن الغذائي",
+   "الثروة السمكية",
+   "الزراعة",
+   "المياه",
+   "التصحر",
+   "المحميات",
+   "environment",
+   "climate",
+   "emissions",
+   "carbon",
+   "waste",
+   "recycling",
+   "renewable",
+   "solar",
+   "hydrogen",
+   "food security",
+   "agriculture"
+  ],
+  "vision_priority_11": [
+   "التشريع",
+   "التشريعات",
+   "قانون",
+   "مرسوم سلطاني",
+   "القضاء",
+   "المحاكم",
+   "المحكمة",
+   "الادعاء العام",
+   "جهاز الرقابة المالية والإدارية",
+   "الرقابة",
+   "مجلس عمان",
+   "مجلس الشورى",
+   "مجلس الدولة",
+   "النزاهة",
+   "مكافحة الفساد",
+   "legislation",
+   "judiciary",
+   "court",
+   "royal decree",
+   "law",
+   "oversight",
+   "audit",
+   "anti corruption"
+  ],
+  "vision_priority_12": [
+   "الجهاز الإداري للدولة",
+   "الخدمات الحكومية",
+   "الحكومة الإلكترونية",
+   "الحكومة الرقمية",
+   "التحول الرقمي الحكومي",
+   "كفاءة الأداء",
+   "الأداء الحكومي",
+   "إدارة المشاريع",
+   "الحوكمة",
+   "وحدة متابعة تنفيذ رؤية عمان 2040",
+   "government services",
+   "e government",
+   "digital government",
+   "governance",
+   "public sector performance"
+  ]
+ },
+ "indicator_aliases": {
+  "indicator_01": {
+   "strong": [
+    "TIMSS",
+    "تيمز",
+    "الدراسة الدولية للرياضيات والعلوم",
+    "اتجاهات الرياضيات والعلوم",
+    "trends in international mathematics"
+   ],
+   "combos": [
+    [
+     [
+      "الاختبارات الدولية",
+      "اختبارات دولية",
+      "international assessment"
+     ],
+     [
+      "الرياضيات",
+      "العلوم",
+      "mathematics",
+      "science"
+     ]
+    ]
+   ],
+   "subItemTerms": {
+    "indicator_01_grade8": [
+     "الصف الثامن",
+     "grade 8",
+     "eighth grade"
+    ]
+   }
+  },
+  "indicator_02": {
+   "strong": [
+    "التعليم المهني",
+    "التعليم التقني",
+    "التعليم الفني",
+    "المسار المهني",
+    "المسار التقني",
+    "vocational education",
+    "technical education",
+    "tvet"
+   ]
+  },
+  "indicator_03": {
+   "strong": [
+    "تصنيف QS",
+    "QS world",
+    "times higher education",
+    "تصنيف التايمز",
+    "تصنيف شنغهاي",
+    "تصنيف الجامعات",
+    "التصنيف العالمي للجامعات",
+    "التصنيفات العالمية للجامعات",
+    "أفضل 500 جامعة",
+    "top 500 universities",
+    "world university rankings",
+    "university rankings"
+   ],
+   "combos": [
+    [
+     [
+      "تصنيف",
+      "ترتيب",
+      "ranking",
+      "rankings"
+     ],
+     [
+      "جامعة",
+      "الجامعات",
+      "university",
+      "universities"
+     ],
+     [
+      "العالمي",
+      "العالمية",
+      "عالميا",
+      "world",
+      "global"
+     ]
+    ]
+   ]
+  },
+  "indicator_04": {
+   "strong": [
+    "رضا سوق العمل",
+    "رضا أصحاب العمل",
+    "مخرجات التعليم",
+    "مواءمة مخرجات",
+    "احتياجات سوق العمل",
+    "فجوة المهارات",
+    "employer satisfaction",
+    "graduate employability",
+    "skills gap"
+   ]
+  },
+  "indicator_05": {
+   "strong": [
+    "مؤشر الابتكار العالمي",
+    "global innovation index",
+    "GII"
+   ],
+   "combos": [
+    [
+     [
+      "الابتكار",
+      "innovation"
+     ],
+     [
+      "مؤشر",
+      "ترتيب",
+      "تصنيف",
+      "index",
+      "ranking",
+      "ranked"
+     ]
+    ],
+    [
+     [
+      "wipo",
+      "الويبو",
+      "المنظمة العالمية للملكية الفكرية"
+     ],
+     [
+      "الابتكار",
+      "innovation"
+     ]
+    ]
+   ]
+  },
+  "indicator_06": {
+   "strong": [
+    "الإنفاق على البحث والتطوير",
+    "تمويل البحث العلمي",
+    "R&D spending",
+    "R&D expenditure",
+    "research and development spending"
+   ],
+   "combos": [
+    [
+     [
+      "البحث والتطوير",
+      "R&D",
+      "research and development"
+     ],
+     [
+      "القطاع الخاص",
+      "الشركات",
+      "private sector",
+      "companies"
+     ]
+    ]
+   ]
+  },
+  "indicator_07": {
+   "strong": [
+    "متوسط العمر المتوقع",
+    "العمر المتوقع",
+    "سنوات الحياة الصحية",
+    "life expectancy",
+    "healthy life expectancy",
+    "الأمراض غير المعدية",
+    "non communicable diseases",
+    "NCDs"
+   ],
+   "combos": [
+    [
+     [
+      "السكري",
+      "السمنة",
+      "التدخين",
+      "الأمراض المزمنة",
+      "diabetes",
+      "obesity",
+      "smoking"
+     ],
+     [
+      "حملة",
+      "توعية",
+      "برنامج",
+      "الفحص",
+      "معدلات",
+      "انتشار",
+      "campaign",
+      "screening",
+      "prevalence"
+     ]
+    ]
+   ]
+  },
+  "indicator_08": {
+   "strong": [
+    "رضا المرضى",
+    "رضا المراجعين",
+    "جودة الخدمات الصحية",
+    "جودة الرعاية الصحية",
+    "قوائم الانتظار",
+    "تجربة المريض",
+    "patient satisfaction",
+    "waiting lists"
+   ],
+   "combos": [
+    [
+     [
+      "مستشفى",
+      "المستشفيات",
+      "المراكز الصحية",
+      "المؤسسات الصحية",
+      "hospital",
+      "health centre",
+      "health center"
+     ],
+     [
+      "افتتاح",
+      "يفتتح",
+      "تفتتح",
+      "تدشين",
+      "توسعة",
+      "خدمة جديدة",
+      "opens",
+      "inaugurates",
+      "launches",
+      "expansion"
+     ]
+    ]
+   ]
+  },
+  "indicator_09": {
+   "strong": [
+    "مؤشر الرفاه",
+    "جودة الحياة",
+    "wellbeing index",
+    "well being index",
+    "quality of life"
+   ]
+  },
+  "indicator_10": {
+   "strong": [
+    "مؤشر التسامح",
+    "التسامح",
+    "التعايش",
+    "الحوار بين الأديان",
+    "tolerance",
+    "coexistence",
+    "interfaith"
+   ]
+  },
+  "indicator_11": {
+   "strong": [
+    "الترابط الاجتماعي",
+    "التماسك الاجتماعي",
+    "التكافل الاجتماعي",
+    "النسيج الاجتماعي",
+    "العمل التطوعي",
+    "social cohesion",
+    "volunteering"
+   ]
+  },
+  "indicator_12": {
+   "strong": [
+    "صون التراث",
+    "التراث",
+    "الموروث",
+    "الآثار",
+    "المواقع الأثرية",
+    "الحرف التقليدية",
+    "الصناعات الحرفية",
+    "المتاحف",
+    "متحف",
+    "التراث العالمي",
+    "اليونسكو",
+    "المخطوطات",
+    "heritage",
+    "archaeological",
+    "museum",
+    "unesco",
+    "handicrafts",
+    "manuscripts"
+   ]
+  },
+  "indicator_13": {
+   "strong": [
+    "الاعتزاز بالهوية",
+    "الهوية الوطنية",
+    "الهوية العمانية",
+    "المواطنة",
+    "القيم العمانية",
+    "العيد الوطني",
+    "national identity",
+    "citizenship",
+    "national day"
+   ]
+  },
+  "indicator_14": {
+   "strong": [
+    "نمو الناتج المحلي",
+    "النمو الاقتصادي",
+    "معدل النمو الاقتصادي",
+    "الناتج المحلي الإجمالي الحقيقي",
+    "GDP growth",
+    "real GDP",
+    "economic growth"
+   ]
+  },
+  "indicator_15": {
+   "strong": [
+    "الجودة التنظيمية",
+    "regulatory quality",
+    "البيئة التنظيمية",
+    "الإطار التنظيمي",
+    "سهولة ممارسة الأعمال",
+    "ease of doing business",
+    "مؤشرات الحوكمة العالمية",
+    "worldwide governance indicators"
+   ]
+  },
+  "indicator_16": {
+   "strong": [
+    "مؤشر التعقيد الاقتصادي",
+    "التعقيد الاقتصادي",
+    "economic complexity",
+    "ECI",
+    "atlas of economic complexity"
+   ],
+   "combos": [
+    [
+     [
+      "الصناعات التحويلية",
+      "التصنيع",
+      "manufacturing"
+     ],
+     [
+      "القيمة المضافة",
+      "value added",
+      "التقنية العالية",
+      "high tech"
+     ]
+    ]
+   ]
+  },
+  "indicator_17": {
+   "strong": [
+    "الأنشطة غير النفطية",
+    "القطاعات غير النفطية",
+    "الناتج المحلي غير النفطي",
+    "non oil activities",
+    "non oil sectors",
+    "non oil GDP"
+   ]
+  },
+  "indicator_18": {
+   "strong": [
+    "المعاملات الاقتصادية الخارجة",
+    "التحويلات الخارجة",
+    "تحويلات الوافدين",
+    "تحويلات العاملين",
+    "ميزان المدفوعات",
+    "الحساب الجاري",
+    "outward transactions",
+    "remittances",
+    "balance of payments",
+    "current account"
+   ]
+  },
+  "indicator_19": {
+   "strong": [
+    "الإيرادات غير النفطية",
+    "non oil revenue",
+    "non oil revenues",
+    "ضريبة القيمة المضافة",
+    "ضريبة الدخل",
+    "الضريبة الانتقائية",
+    "جهاز الضرائب",
+    "VAT",
+    "excise tax",
+    "income tax",
+    "tax authority"
+   ]
+  },
+  "indicator_20": {
+   "strong": [
+    "الصادرات غير النفطية",
+    "الصادرات الوطنية",
+    "الصادرات العمانية",
+    "صنع في عمان",
+    "non oil exports",
+    "made in oman"
+   ],
+   "combos": [
+    [
+     [
+      "الصادرات",
+      "exports",
+      "تصدير"
+     ],
+     [
+      "غير النفطية",
+      "غير النفطي",
+      "non oil",
+      "الوطنية",
+      "العمانية"
+     ]
+    ]
+   ],
+   "negations": [
+    "إعادة التصدير",
+    "re exports",
+    "re export"
+   ]
+  },
+  "indicator_21": {
+   "strong": [
+    "الإنفاق العام",
+    "الإنفاق الحكومي",
+    "المصروفات العامة",
+    "ترشيد الإنفاق",
+    "public spending",
+    "government spending",
+    "public expenditure"
+   ],
+   "combos": [
+    [
+     [
+      "الميزانية",
+      "الموازنة",
+      "budget"
+     ],
+     [
+      "الإنفاق",
+      "المصروفات",
+      "spending",
+      "expenditure"
+     ]
+    ]
+   ]
+  },
+  "indicator_22": {
+   "strong": [
+    "الدين العام",
+    "المديونية",
+    "الديون الحكومية",
+    "الصكوك السيادية",
+    "السندات الحكومية",
+    "public debt",
+    "government debt",
+    "sovereign sukuk",
+    "government bonds"
+   ],
+   "combos": [
+    [
+     [
+      "debt",
+      "الديون",
+      "ديون"
+     ],
+     [
+      "الحكومة",
+      "government",
+      "سيادية",
+      "sovereign",
+      "public"
+     ]
+    ]
+   ]
+  },
+  "indicator_23": {
+   "strong": [
+    "الباحثين عن عمل",
+    "الباحثون عن عمل",
+    "البطالة",
+    "معدل البطالة",
+    "المسرحين",
+    "jobseekers",
+    "job seekers",
+    "unemployment",
+    "layoffs"
+   ]
+  },
+  "indicator_24": {
+   "strong": [
+    "التعمين",
+    "نسبة التعمين",
+    "توطين الوظائف",
+    "إحلال القوى العاملة الوطنية",
+    "توظيف العمانيين",
+    "تشغيل العمانيين",
+    "omanisation",
+    "omanization"
+   ]
+  },
+  "indicator_25": {
+   "strong": [
+    "العمل الحر",
+    "لحسابه الخاص",
+    "بطاقة ريادة",
+    "رواد الأعمال",
+    "ريادة الأعمال",
+    "self employed",
+    "self employment",
+    "freelance",
+    "freelancers",
+    "entrepreneurs",
+    "entrepreneurship"
+   ]
+  },
+  "indicator_26": {
+   "strong": [
+    "الوظائف القيادية",
+    "الوظائف الفنية",
+    "الوظائف التخصصية",
+    "المناصب القيادية",
+    "إعداد القيادات",
+    "leadership positions",
+    "technical jobs",
+    "specialised jobs",
+    "specialized jobs"
+   ]
+  },
+  "indicator_27": {
+   "strong": [
+    "مساهمة القطاع الخاص",
+    "دور القطاع الخاص",
+    "الشراكة بين القطاعين العام والخاص",
+    "التخصيص",
+    "الخصخصة",
+    "private sector contribution",
+    "public private partnership",
+    "PPP",
+    "privatisation",
+    "privatization"
+   ]
+  },
+  "indicator_28": {
+   "strong": [
+    "المؤسسات الصغيرة والمتوسطة",
+    "المؤسسات الصغرى",
+    "الصغيرة والمتوسطة",
+    "الشركات الناشئة",
+    "تنمية المؤسسات الصغيرة",
+    "SME",
+    "SMEs",
+    "MSME",
+    "MSMEs",
+    "small and medium enterprises",
+    "startups",
+    "startup"
+   ]
+  },
+  "indicator_29": {
+   "strong": [
+    "الاستثمار الأجنبي المباشر",
+    "الاستثمارات الأجنبية",
+    "المستثمرين الأجانب",
+    "إقامة المستثمر",
+    "الإقامة الذهبية",
+    "foreign direct investment",
+    "FDI",
+    "foreign investors",
+    "foreign investment",
+    "golden visa",
+    "invest oman"
+   ]
+  },
+  "indicator_30": {
+   "strong": [
+    "الاستثمار الخاص",
+    "الاستثمارات الخاصة",
+    "استثمارات القطاع الخاص",
+    "المناطق الاقتصادية",
+    "المنطقة الاقتصادية الخاصة",
+    "المناطق الحرة",
+    "المنطقة الحرة",
+    "private investment",
+    "private sector investment",
+    "free zone",
+    "free zones",
+    "special economic zone"
+   ]
+  },
+  "indicator_31": {
+   "strong": [
+    "برنامج تنمية المحافظات",
+    "تنمية المحافظات",
+    "المجالس البلدية",
+    "المجلس البلدي",
+    "اللامركزية",
+    "governorate development",
+    "municipal council"
+   ],
+   "combos": [
+    [
+     [
+      "المحافظة",
+      "المحافظات",
+      "ولاية",
+      "governorate",
+      "wilayat"
+     ],
+     [
+      "مشاريع تنموية",
+      "مشروع تنموي",
+      "الخدمات",
+      "رصف",
+      "الطرق",
+      "البنية الأساسية",
+      "development projects",
+      "services",
+      "infrastructure"
+     ]
+    ]
+   ]
+  },
+  "indicator_32": {
+   "strong": [
+    "الانبعاثات",
+    "انبعاثات",
+    "الغازات الدفيئة",
+    "غازات الاحتباس الحراري",
+    "الحياد الصفري",
+    "الحياد الكربوني",
+    "ثاني أكسيد الكربون",
+    "احتجاز الكربون",
+    "البصمة الكربونية",
+    "net zero",
+    "emissions",
+    "greenhouse",
+    "GHG",
+    "CO2",
+    "carbon capture"
+   ]
+  },
+  "indicator_33": {
+   "strong": [
+    "إعادة التدوير",
+    "التدوير",
+    "النفايات",
+    "إدارة النفايات",
+    "المخلفات",
+    "الاقتصاد الدائري",
+    "فرز النفايات",
+    "recycling",
+    "recycled",
+    "waste management",
+    "waste",
+    "circular economy"
+   ]
+  },
+  "indicator_34": {
+   "strong": [
+    "الطاقة المتجددة",
+    "الطاقة الشمسية",
+    "طاقة الرياح",
+    "الهيدروجين الأخضر",
+    "محطة شمسية",
+    "الألواح الشمسية",
+    "هايدروم",
+    "renewable energy",
+    "renewables",
+    "solar",
+    "wind farm",
+    "wind energy",
+    "green hydrogen",
+    "hydrom",
+    "solar panels"
+   ],
+   "negations": [
+    "الكسوف الشمسي",
+    "كسوف الشمس",
+    "المجموعة الشمسية",
+    "solar eclipse",
+    "solar system"
+   ]
+  },
+  "indicator_35": {
+   "strong": [
+    "الاكتفاء الذاتي",
+    "الأمن الغذائي",
+    "الإنتاج الزراعي",
+    "الإنتاج السمكي",
+    "الثروة السمكية",
+    "الثروة الحيوانية",
+    "المحاصيل",
+    "الدواجن",
+    "الألبان",
+    "food security",
+    "self sufficiency",
+    "agriculture",
+    "fisheries",
+    "livestock",
+    "poultry",
+    "dairy",
+    "crops"
+   ],
+   "combos": [
+    [
+     [
+      "الإنتاج المحلي",
+      "local production"
+     ],
+     [
+      "الغذاء",
+      "الغذائية",
+      "الخضروات",
+      "التمور",
+      "القمح",
+      "الأسماك",
+      "food",
+      "vegetables",
+      "dates",
+      "fish"
+     ]
+    ]
+   ]
+  },
+  "indicator_36": {
+   "strong": [
+    "المنظومة التشريعية",
+    "المنظومة القضائية",
+    "المنظومة الرقابية",
+    "جهاز الرقابة المالية والإدارية",
+    "جهاز الرقابة",
+    "الادعاء العام",
+    "المحكمة العليا",
+    "المجلس الأعلى للقضاء",
+    "سيادة القانون",
+    "مجلس الشورى",
+    "مجلس الدولة",
+    "مشروع قانون",
+    "مكافحة الفساد",
+    "النزاهة",
+    "rule of law",
+    "judiciary",
+    "judicial",
+    "state audit",
+    "shura council",
+    "state council",
+    "anti corruption"
+   ],
+   "combos": [
+    [
+     [
+      "مرسوم سلطاني",
+      "royal decree"
+     ],
+     [
+      "بإصدار قانون",
+      "قانون",
+      "تعديل",
+      "law",
+      "promulgating"
+     ]
+    ]
+   ]
+  },
+  "indicator_37": {
+   "strong": [
+    "الخدمات الحكومية",
+    "رضا المستفيدين",
+    "رضا المجتمع",
+    "تجربة المستفيد",
+    "الخدمات الإلكترونية",
+    "المنصات الحكومية",
+    "الحكومة الإلكترونية",
+    "الحكومة الرقمية",
+    "التحول الرقمي الحكومي",
+    "e government",
+    "government services",
+    "digital government"
+   ]
+  },
+  "indicator_38": {
+   "strong": [
+    "الكفاءة الحكومية",
+    "كفاءة الإنفاق",
+    "كفاءة الجهاز الإداري",
+    "الأداء الحكومي",
+    "قياس الأداء",
+    "إعادة هيكلة الجهاز الإداري",
+    "دمج الوحدات الحكومية",
+    "المشاريع المتعثرة",
+    "government efficiency",
+    "government effectiveness"
+   ]
+  }
+ },
+ "global_neutralizers": [
+  "عدم صحة",
+  "صحة ما",
+  "صحة الخبر",
+  "صحة المعلومات",
+  "صحة الأنباء",
+  "صحة هذه",
+  "مدى صحة",
+  "بطاقة الهوية",
+  "الهوية الشخصية",
+  "الهوية البصرية",
+  "الهوية المؤسسية",
+  "visual identity",
+  "brand identity",
+  "id card",
+  "نادي التراث",
+  "fake news",
+  "المحافظة على",
+  "والمحافظة على",
+  "بالمحافظة على",
+  "الآثار الجانبية",
+  "الآثار السلبية",
+  "الآثار الإيجابية",
+  "الآثار الاقتصادية",
+  "آثار جانبية",
+  "آثار سلبية"
+ ],
+ "general_exclusions": [
+  "كرة القدم",
+  "مباراة",
+  "الدوري",
+  "المنتخب الوطني لكرة",
+  "بطولة كأس",
+  "كأس العالم",
+  "الشوط",
+  "football",
+  "match",
+  "league",
+  "cricket",
+  "tournament",
+  "مسلسل",
+  "فيلم",
+  "حفل غنائي",
+  "celebrity",
+  "حالة الطقس",
+  "الأرصاد",
+  "منخفض جوي",
+  "weather",
+  "حادث سير",
+  "حريق",
+  "القبض على",
+  "arrested",
+  "نعي",
+  "تعزية",
+  "عزاء",
+  "أسعار الذهب",
+  "سعر الذهب",
+  "gold price"
+ ],
+ "jordan_markers": [
+  "الأردن",
+  "الأردنية",
+  "الأردني",
+  "jordan",
+  "jordanian",
+  "amman"
+ ],
+ "strong_oman_markers": [
+  "محافظة مسقط",
+  "ظفار",
+  "مسندم",
+  "البريمي",
+  "شمال الباطنة",
+  "جنوب الباطنة",
+  "الباطنة",
+  "شمال الشرقية",
+  "جنوب الشرقية",
+  "الشرقية",
+  "الظاهرة",
+  "الوسطى",
+  "الرستاق",
+  "بهلاء",
+  "إزكي",
+  "سمائل",
+  "المضيبي",
+  "السويق",
+  "شناص",
+  "صحم",
+  "الخابورة",
+  "بركاء",
+  "المصنعة",
+  "مطرح",
+  "السيب",
+  "بوشر",
+  "العامرات",
+  "قريات",
+  "هيماء",
+  "مرباط",
+  "ضنك",
+  "جعلان",
+  "مصيرة",
+  "شرطة عمان السلطانية",
+  "جلالة السلطان",
+  "حضرة صاحب الجلالة",
+  "مجلس الشورى",
+  "مجلس الدولة",
+  "ريال عماني",
+  "بورصة مسقط",
+  "musandam",
+  "khasab",
+  "buraimi",
+  "dhahirah",
+  "dakhiliyah",
+  "batinah",
+  "sharqiyah",
+  "wusta",
+  "ibri",
+  "nizwa",
+  "rustaq",
+  "sur",
+  "seeb",
+  "barka",
+  "suwaiq",
+  "shinas",
+  "ibra",
+  "bahla",
+  "sumail",
+  "samail",
+  "royal oman police",
+  "rop",
+  "hm the sultan",
+  "his majesty sultan haitham",
+  "shura council",
+  "state council",
+  "omr",
+  "msx",
+  "sayyid",
+  "سلطنة عمان",
+  "السلطنة",
+  "عماني",
+  "العمانية",
+  "العمانيين",
+  "مسقط",
+  "صلالة",
+  "صحار",
+  "نزوى",
+  "الدقم",
+  "ظفار",
+  "السلطان هيثم",
+  "رؤية عمان",
+  "oman",
+  "omani",
+  "muscat",
+  "salalah",
+  "sohar",
+  "duqm",
+  "dhofar"
+ ],
+ "weak_oman_markers": [
+  "عمان",
+  "رؤية 2040",
+  "vision 2040"
+ ],
+ "foreign_markers": [
+  "السعودية",
+  "الرياض",
+  "الإمارات",
+  "دبي",
+  "أبوظبي",
+  "قطر",
+  "الدوحة",
+  "الكويت",
+  "البحرين",
+  "مصر",
+  "القاهرة",
+  "العراق",
+  "سوريا",
+  "لبنان",
+  "اليمن",
+  "إيران",
+  "طهران",
+  "إسرائيل",
+  "غزة",
+  "فلسطين",
+  "الأردن",
+  "تركيا",
+  "روسيا",
+  "موسكو",
+  "أوكرانيا",
+  "الصين",
+  "بكين",
+  "اليابان",
+  "الهند",
+  "باكستان",
+  "أمريكا",
+  "الولايات المتحدة",
+  "واشنطن",
+  "ترامب",
+  "بريطانيا",
+  "لندن",
+  "فرنسا",
+  "باريس",
+  "ألمانيا",
+  "أوروبا",
+  "الاتحاد الأوروبي",
+  "أستراليا",
+  "أفريقيا",
+  "السودان",
+  "ليبيا",
+  "المغرب",
+  "الجزائر",
+  "تونس",
+  "المريخ",
+  "ناسا",
+  "saudi",
+  "riyadh",
+  "uae",
+  "dubai",
+  "abu dhabi",
+  "qatar",
+  "doha",
+  "kuwait",
+  "bahrain",
+  "egypt",
+  "cairo",
+  "iraq",
+  "syria",
+  "lebanon",
+  "yemen",
+  "iran",
+  "tehran",
+  "israel",
+  "gaza",
+  "palestine",
+  "palestinian",
+  "turkey",
+  "russia",
+  "moscow",
+  "ukraine",
+  "china",
+  "beijing",
+  "japan",
+  "india",
+  "pakistan",
+  "usa",
+  "america",
+  "washington",
+  "trump",
+  "britain",
+  "uk",
+  "london",
+  "france",
+  "paris",
+  "germany",
+  "europe",
+  "eu",
+  "australia",
+  "fiji",
+  "africa",
+  "sudan",
+  "nasa",
+  "mars"
+ ],
+ "denial_terms": [
+  "تنفي",
+  "نفت",
+  "ينفي",
+  "نفى",
+  "لا صحة",
+  "غير صحيح",
+  "شائعة",
+  "شائعات",
+  "denies",
+  "denied",
+  "rumour",
+  "rumor"
+ ],
+ "blocking_review_reasons": [
+  "multi_priority_close",
+  "weak_oman_context",
+  "weak_indicator_evidence",
+  "subitem_structure_unconfirmed",
+  "denial_or_rumor",
+  "source_context_only"
+ ],
+ "review_reason_labels": {
+  "multi_priority_close": "أولويتان متقاربتان",
+  "weak_oman_context": "سياق عماني ضعيف (قد تكون عمّان)",
+  "weak_indicator_evidence": "دليل المؤشر ضعيف (تركيب كلمات)",
+  "priority_only": "على مستوى الأولوية فقط",
+  "subitem_structure_unconfirmed": "عنصر فرعي بحاجة لتأكيد الهيكلة",
+  "denial_or_rumor": "يتضمن نفيًا أو شائعة",
+  "legacy_conflict": "يتعارض مع التصنيف القديم",
+  "source_context_only": "السياق العماني مستنتج من المصدر فقط",
+  "low_confidence": "ثقة الذكاء الاصطناعي منخفضة",
+  "sensitive": "محتوى حساس (لا يُرسل للذكاء الاصطناعي)",
+  "ai_no_match": "الذكاء الاصطناعي لم يجد ارتباطًا"
+ }
+}
