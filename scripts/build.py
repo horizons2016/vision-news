@@ -20,6 +20,7 @@ from datetime import date, datetime, timedelta
 from common import (CONFIG, DATA, REPORTS, SITE, STATE, TAXONOMY, load_articles, now_iso, read_json, to_muscat,
                     write_json)
 from newstype import TYPES, news_type, rule_digest
+from analysis import analyse
 
 COUNTED = {"auto", "confirmed"}
 DECISION_WORDS = {"تأكيد": "confirm", "confirm": "confirm", "رفض": "reject", "reject": "reject",
@@ -138,7 +139,7 @@ def compact(a):
 
 
 def digest_for(period_id: str, code: str, arts: list) -> dict:
-    """الزبدة: من الذكاء الاصطناعي إن وُجد ملخص محفوظ، وإلا بالقواعد."""
+    """الخلاصة: من الذكاء الاصطناعي إن وُجد ملخص محفوظ، وإلا بالقواعد."""
     saved = read_json(DATA / "summaries" / period_id / f"{code}.json", None)
     if saved and saved.get("bullets"):
         return {"source": "ai", "bullets": saved["bullets"]}
@@ -233,7 +234,7 @@ def report_markdown(r: dict, pri: dict) -> str:
            f"- الأخبار المرتبطة بالرؤية: **{r['total']}** (الفترة السابقة: {r['prevTotal']})",
            f"- بانتظار تأكيد الفريق: {r['awaiting']}", ""]
     if r["digest"]["bullets"]:
-        out += ["## الزبدة: ماذا حدث", ""] + [f"- {TYPES[b['type']]['icon'] + ' ' if b.get('type') else ''}{b['text']}" for b in r["digest"]["bullets"]] + [""]
+        out += ["## الخلاصة: ماذا حدث", ""] + [f"- {TYPES[b['type']]['icon'] + ' ' if b.get('type') else ''}{b['text']}" for b in r["digest"]["bullets"]] + [""]
     if r["highlights"]:
         out += ["## أرقام الحراك", ""] + [f"- {h}" for h in r["highlights"]] + [""]
     out += ["## حسب المحاور", "", "| المحور | الأخبار | السابقة |", "|---|---|---|"]
@@ -247,7 +248,7 @@ def report_markdown(r: dict, pri: dict) -> str:
         if p["indicators"]:
             out.append("المؤشرات: " + "، ".join(f"{i['nameAr']} ({i['count']})" for i in p["indicators"]))
         out += ["", "المصادر:"] + [f"- [{h['title']}]({h['url']}) — {h['date']}" for h in p["headlines"]] + [""]
-    out += ["---", "*رصد إخباري لما نُشر عن أولويات رؤية عُمان 2040؛ الزبدة مستخلصة من الأخبار المرفقة روابطها.*", ""]
+    out += ["---", "*رصد إخباري لما نُشر عن أولويات رؤية عُمان 2040؛ الخلاصة مستخلصة من الأخبار المرفقة روابطها.*", ""]
     return "\n".join(out)
 
 
@@ -355,6 +356,7 @@ def main() -> int:
 
     out = SITE / "data"
     write_json(out / "meta.json", meta, indent=None)
+    write_json(out / "analysis.json", analyse([compact(a) for a in counted], axes, pri, ind, today, week_start), indent=None)
     write_json(out / "series.json", {k: (dict(v) if isinstance(v, defaultdict) else v) for k, v in series.items()}, indent=None)
     write_json(out / "articles.json", [compact(a) for a in sorted(counted + review, key=by_date, reverse=True)], indent=None)
     write_json(out / "uncertain.json", [compact(a) for a in sorted(uncertain, key=by_date, reverse=True)], indent=None)

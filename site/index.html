@@ -4,25 +4,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>رصد الرؤية — حراك أخبار رؤية عُمان 2040</title>
-<meta name="description" content="رصد وتصنيف أخبار رؤية عُمان 2040 حسب المحاور والأولويات والمؤشرات، مع تقارير أسبوعية وشهرية">
-<meta name="theme-color" content="#3f3566">
+<meta name="description" content="رصد وتحليل حراك أخبار رؤية عُمان 2040 حسب المحاور والأولويات والمؤشرات">
+<meta name="theme-color" content="#4b2e83">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 <header class="top">
-  <a class="brand" href="#/">
-    <img src="icon.svg" alt="" width="34" height="34">
-    <span><b>رصد الرؤية</b><small>الرصد الإخباري لرؤية عُمان 2040</small></span>
-  </a>
+  <div class="top-in">
+    <a class="brand" href="#/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span><b>رصد الرؤية</b><small>حراك أخبار رؤية عُمان 2040</small></span>
+    </a>
+    <span class="spacer"></span>
+    <img class="vlogo" src="vision-logo.png" alt="رؤية عُمان 2040" height="78">
+  </div>
   <nav id="nav">
     <a href="#/" data-r="home">اللوحة</a>
     <a href="#/taxonomy" data-r="taxonomy">الأولويات</a>
+    <a href="#/analysis" data-r="analysis">تحليل الحراك</a>
     <a href="#/legislation" data-r="legislation">المراسيم والقرارات</a>
     <a href="#/news" data-r="news">كل الأخبار</a>
     <a href="#/reports" data-r="reports">التقارير</a>
@@ -30,11 +35,12 @@
     <a href="#/sources" data-r="sources">المصادر</a>
     <a href="#/about" data-r="about">عن الرصد</a>
   </nav>
+  <div class="vstripe"></div>
 </header>
 <main id="app"><div class="loading">جارٍ تحميل البيانات…</div></main>
 <footer class="foot" id="foot"></footer>
 <div id="toast" class="toast hidden"></div>
 <dialog id="dlg"></dialog>
-<script src="app.js" defer></script>
+<script src="app.js?v=3" defer></script>
 </body>
 </html>

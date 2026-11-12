@@ -88,7 +88,7 @@ def link_html(a: dict, meta: dict) -> str:
 
 
 def digest_html(dg: dict, by_id: dict, meta: dict) -> str:
-    # الزبدة بالقواعد = عناوين الأخبار نفسها، فلا تُكرر في البريد؛ تظهر فقط الزبدة التحريرية (الذكاء الاصطناعي)
+    # الخلاصة بالقواعد = عناوين الأخبار نفسها، فلا تُكرر في البريد؛ تظهر فقط الخلاصة التحريرية (الذكاء الاصطناعي)
     if not dg or not dg.get("bullets") or dg.get("source") != "ai":
         return ""
     rows = []
@@ -120,7 +120,7 @@ def section(code: str, meta: dict, report: dict, arts: list, by_id: dict) -> tup
     more = f'<p style="font-size:12px;color:#777">و{len(items) - MAX_PER_PRIORITY} أخبار أخرى في <a href="{SITE_URL}#/p/{code}?per={report["id"]}" style="color:#665893">صفحة الأولوية</a>.</p>' if len(items) > MAX_PER_PRIORITY else ""
     h = (f'<h3 style="margin:24px 0 2px;color:#3f3566;font-size:16px">{code} — {e(name)} '
          f'<span style="color:#888;font-weight:normal;font-size:13px">({len(items)} خبر، الأسبوع السابق {pr["prev"]})</span></h3>'
-         + (f'<p style="margin:6px 0 2px;font-weight:bold;font-size:14px">الزبدة:</p>{digest_html(pr.get("digest"), by_id, meta)}' if digest_html(pr.get("digest"), by_id, meta) else "") +
+         + (f'<p style="margin:6px 0 2px;font-weight:bold;font-size:14px">الخلاصة:</p>{digest_html(pr.get("digest"), by_id, meta)}' if digest_html(pr.get("digest"), by_id, meta) else "") +
          f'<p style="margin:10px 0 2px;font-weight:bold;font-size:14px">الأخبار:</p><table width="100%" cellpadding="0" cellspacing="0">{rows}</table>{more}')
     t = [f"\n{code} — {name} ({len(items)} خبر)"]
     if (pr.get("digest") or {}).get("source") == "ai":
@@ -150,7 +150,7 @@ def render(meta: dict, report: dict, arts: list, codes: list[str], preview_note:
                       + "</table>")
     overall = ""
     if everyone and digest_html(report.get("digest"), by_id, meta):
-        overall = (f'<h2 style="font-size:17px;margin:18px 0 6px;color:#1f1d2b">الزبدة العامة</h2>'
+        overall = (f'<h2 style="font-size:17px;margin:18px 0 6px;color:#1f1d2b">الخلاصة العامة</h2>'
                    f'{digest_html(report.get("digest"), by_id, meta)}')
     label = report["label"]
     names = "، ".join(next(p["nameAr"] for p in meta["priorities"] if p["code"] == c) for c in show) if not everyone else "كل الأولويات"
