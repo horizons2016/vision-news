@@ -1,77 +1,221 @@
 {
-  "_تعليمات": "قائمة المصادر. لكل مصدر: feeds = روابط RSS/Atom تُجرَّب بالترتيب، و pages = صفحات أخبار تُقرأ عند فشل RSS. linkPattern نمط يجب أن يطابقه رابط الخبر عند قراءة الصفحات. omaniOutlet=true يعني أن أخبار المصدر تُعدّ عمانية ما لم يذكر العنوان بلدًا آخر. publishes = daily أو weekly أو irregular (لحساب تأخر المصدر). active=false لإيقاف المصدر دون حذفه.",
+  "_تعليمات": "قائمة المصادر. لكل مصدر: feeds = روابط RSS/Atom تُجرَّب بالترتيب، و pages = صفحات أخبار تُقرأ عند فشل RSS. linkPattern نمط يجب أن يطابقه رابط الخبر عند قراءة الصفحات. omaniOutlet=true يعني أن أخبار المصدر تُعدّ عمانية ما لم يذكر العنوان بلدًا آخر. publishes = daily أو weekly أو irregular (لحساب تأخر المصدر). active=false لإيقاف المصدر دون حذفه. verifySSL=false لمواقع شهادتها الأمنية ناقصة. رابط Google News بصيغة site:الموقع بديل أخير للصحف التي تحجب القراءة الآلية.",
   "sources": [
     {
-      "id": "omandaily", "nameAr": "جريدة عُمان", "nameEn": "Oman Daily", "kind": "صحافة محلية", "lang": "ar",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://www.omandaily.om/rssFeed/0"],
-      "pages": ["https://www.omandaily.om/"], "linkPattern": "omandaily\\.om/article/\\d+"
+      "id": "omandaily",
+      "nameAr": "جريدة عُمان",
+      "nameEn": "Oman Daily",
+      "kind": "صحافة محلية",
+      "lang": "ar",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://www.omandaily.om/rssFeed/0"
+      ],
+      "pages": [
+        "https://www.omandaily.om/"
+      ],
+      "linkPattern": "omandaily\\.om/article/\\d+"
     },
     {
-      "id": "alwatan", "nameAr": "جريدة الوطن", "nameEn": "Al Watan", "kind": "صحافة محلية", "lang": "ar",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://alwatan.om/feed", "https://www.alwatan.om/feed", "https://alwatan.om/rss"],
-      "pages": ["https://alwatan.om/"], "linkPattern": "alwatan\\.om/(details|archives|\\d{4})/"
+      "id": "alwatan",
+      "nameAr": "جريدة الوطن",
+      "nameEn": "Al Watan",
+      "kind": "صحافة محلية",
+      "lang": "ar",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://alwatan.om/feed",
+        "https://www.alwatan.om/feed",
+        "https://alwatan.om/rss",
+        "https://news.google.com/rss/search?q=site:alwatan.om&hl=ar&gl=OM&ceid=OM:ar"
+      ],
+      "pages": [
+        "https://alwatan.om/"
+      ],
+      "linkPattern": "alwatan\\.om/(details|archives|\\d{4})/"
     },
     {
-      "id": "alroya", "nameAr": "جريدة الرؤية", "nameEn": "Alroya", "kind": "صحافة محلية", "lang": "ar",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://alroya.om/rss", "https://alroya.om/feed", "https://www.alroya.om/rss.xml"],
-      "pages": ["https://alroya.om/"], "linkPattern": "alroya\\.om/(p|post|news)/\\d+"
+      "id": "alroya",
+      "nameAr": "جريدة الرؤية",
+      "nameEn": "Alroya",
+      "kind": "صحافة محلية",
+      "lang": "ar",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://alroya.om/rss",
+        "https://alroya.om/feed",
+        "https://www.alroya.om/rss.xml"
+      ],
+      "pages": [
+        "https://alroya.om/"
+      ],
+      "linkPattern": "alroya\\.om/(p|post|news)/\\d+"
     },
     {
-      "id": "shabiba", "nameAr": "جريدة الشبيبة", "nameEn": "Al Shabiba", "kind": "صحافة محلية", "lang": "ar",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://shabiba.com/rss", "https://www.shabiba.com/rss", "https://shabiba.com/feed"],
-      "pages": ["https://shabiba.com/"], "linkPattern": "shabiba\\.com/(article|news)/\\d+"
+      "id": "shabiba",
+      "nameAr": "جريدة الشبيبة",
+      "nameEn": "Al Shabiba",
+      "kind": "صحافة محلية",
+      "lang": "ar",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://shabiba.com/rss",
+        "https://www.shabiba.com/rss",
+        "https://shabiba.com/feed"
+      ],
+      "pages": [
+        "https://shabiba.com/"
+      ],
+      "linkPattern": "shabiba\\.com/(article|news)/\\d+"
     },
     {
-      "id": "atheer", "nameAr": "صحيفة أثير", "nameEn": "Atheer", "kind": "صحافة محلية", "lang": "ar",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://www.atheer.om/feed/", "https://atheer.om/feed/"],
-      "pages": ["https://www.atheer.om/"], "linkPattern": "atheer\\.om/archives/\\d+"
+      "id": "atheer",
+      "nameAr": "صحيفة أثير",
+      "nameEn": "Atheer",
+      "kind": "صحافة محلية",
+      "lang": "ar",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://www.atheer.om/feed/",
+        "https://atheer.om/feed/",
+        "https://news.google.com/rss/search?q=site:atheer.om&hl=ar&gl=OM&ceid=OM:ar"
+      ],
+      "pages": [
+        "https://www.atheer.om/"
+      ],
+      "linkPattern": "atheer\\.om/archives/\\d+"
     },
     {
-      "id": "ona", "nameAr": "وكالة الأنباء العُمانية", "nameEn": "Oman News Agency", "kind": "مصدر رسمي", "lang": "ar",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://omannews.gov.om/rss", "https://omannews.gov.om/ar/rss"],
-      "pages": ["https://omannews.gov.om/"], "linkPattern": "omannews\\.gov\\.om/.*(topics|news)/"
+      "id": "ona",
+      "nameAr": "وكالة الأنباء العُمانية",
+      "nameEn": "Oman News Agency",
+      "kind": "مصدر رسمي",
+      "lang": "ar",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://omannews.gov.om/rss",
+        "https://omannews.gov.om/ar/rss",
+        "https://news.google.com/rss/search?q=site:omannews.gov.om&hl=ar&gl=OM&ceid=OM:ar"
+      ],
+      "pages": [
+        "https://omannews.gov.om/"
+      ],
+      "linkPattern": "omannews\\.gov\\.om/.*(topics|news)/",
+      "verifySSL": false
     },
     {
-      "id": "timesofoman", "nameAr": "تايمز أوف عُمان", "nameEn": "Times of Oman", "kind": "صحافة محلية", "lang": "en",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://timesofoman.com/feed"],
-      "pages": ["https://timesofoman.com/"], "linkPattern": "timesofoman\\.com/article/\\d+"
+      "id": "timesofoman",
+      "nameAr": "تايمز أوف عُمان",
+      "nameEn": "Times of Oman",
+      "kind": "صحافة محلية",
+      "lang": "en",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://timesofoman.com/feed"
+      ],
+      "pages": [
+        "https://timesofoman.com/"
+      ],
+      "linkPattern": "timesofoman\\.com/article/\\d+"
     },
     {
-      "id": "omanobserver", "nameAr": "عُمان أوبزرفر", "nameEn": "Oman Observer", "kind": "صحافة محلية", "lang": "en",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://www.omanobserver.om/rssFeed/home-page", "https://omanobserver.om/rssFeed/home-page"],
-      "pages": ["https://www.omanobserver.om/"], "linkPattern": "omanobserver\\.om/article/\\d+"
+      "id": "omanobserver",
+      "nameAr": "عُمان أوبزرفر",
+      "nameEn": "Oman Observer",
+      "kind": "صحافة محلية",
+      "lang": "en",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://www.omanobserver.om/rssFeed/home-page",
+        "https://omanobserver.om/rssFeed/home-page"
+      ],
+      "pages": [
+        "https://www.omanobserver.om/"
+      ],
+      "linkPattern": "omanobserver\\.om/article/\\d+"
     },
     {
-      "id": "muscatdaily", "nameAr": "مسقط ديلي", "nameEn": "Muscat Daily", "kind": "صحافة محلية", "lang": "en",
-      "omaniOutlet": true, "publishes": "daily", "active": true,
-      "feeds": ["https://www.muscatdaily.com/feed/", "https://muscatdaily.com/feed/"],
-      "pages": ["https://www.muscatdaily.com/"], "linkPattern": "muscatdaily\\.com/\\d{4}/\\d{2}/\\d{2}/"
+      "id": "muscatdaily",
+      "nameAr": "مسقط ديلي",
+      "nameEn": "Muscat Daily",
+      "kind": "صحافة محلية",
+      "lang": "en",
+      "omaniOutlet": true,
+      "publishes": "daily",
+      "active": true,
+      "feeds": [
+        "https://www.muscatdaily.com/feed/",
+        "https://muscatdaily.com/feed/",
+        "https://news.google.com/rss/search?q=site:muscatdaily.com&hl=en&gl=OM&ceid=OM:en"
+      ],
+      "pages": [
+        "https://www.muscatdaily.com/"
+      ],
+      "linkPattern": "muscatdaily\\.com/\\d{4}/\\d{2}/\\d{2}/"
     },
     {
-      "id": "gnews_vision_ar", "nameAr": "أخبار عالمية: «رؤية عمان 2040»", "nameEn": "Google News (AR)", "kind": "تجميع عالمي", "lang": "ar",
-      "omaniOutlet": false, "publishes": "irregular", "active": true, "aggregator": true,
-      "feeds": ["https://news.google.com/rss/search?q=%22%D8%B1%D8%A4%D9%8A%D8%A9+%D8%B9%D9%85%D8%A7%D9%86+2040%22&hl=ar&gl=OM&ceid=OM:ar"],
-      "pages": [], "linkPattern": ""
+      "id": "gnews_vision_ar",
+      "nameAr": "أخبار عالمية: «رؤية عمان 2040»",
+      "nameEn": "Google News (AR)",
+      "kind": "تجميع عالمي",
+      "lang": "ar",
+      "omaniOutlet": false,
+      "publishes": "irregular",
+      "active": true,
+      "aggregator": true,
+      "feeds": [
+        "https://news.google.com/rss/search?q=%22%D8%B1%D8%A4%D9%8A%D8%A9+%D8%B9%D9%85%D8%A7%D9%86+2040%22&hl=ar&gl=OM&ceid=OM:ar"
+      ],
+      "pages": [],
+      "linkPattern": ""
     },
     {
-      "id": "gnews_vision_en", "nameAr": "أخبار عالمية: Oman Vision 2040", "nameEn": "Google News (EN)", "kind": "تجميع عالمي", "lang": "en",
-      "omaniOutlet": false, "publishes": "irregular", "active": true, "aggregator": true,
-      "feeds": ["https://news.google.com/rss/search?q=%22Oman+Vision+2040%22&hl=en&gl=US&ceid=US:en"],
-      "pages": [], "linkPattern": ""
+      "id": "gnews_vision_en",
+      "nameAr": "أخبار عالمية: Oman Vision 2040",
+      "nameEn": "Google News (EN)",
+      "kind": "تجميع عالمي",
+      "lang": "en",
+      "omaniOutlet": false,
+      "publishes": "irregular",
+      "active": true,
+      "aggregator": true,
+      "feeds": [
+        "https://news.google.com/rss/search?q=%22Oman+Vision+2040%22&hl=en&gl=US&ceid=US:en"
+      ],
+      "pages": [],
+      "linkPattern": ""
     },
     {
-      "id": "gnews_oman_economy", "nameAr": "أخبار عالمية: اقتصاد عُمان", "nameEn": "Google News (Oman economy)", "kind": "تجميع عالمي", "lang": "en",
-      "omaniOutlet": false, "publishes": "irregular", "active": true, "aggregator": true,
-      "feeds": ["https://news.google.com/rss/search?q=Oman+economy+OR+investment+OR+%22non-oil%22&hl=en&gl=US&ceid=US:en"],
-      "pages": [], "linkPattern": ""
+      "id": "gnews_oman_economy",
+      "nameAr": "أخبار عالمية: اقتصاد عُمان",
+      "nameEn": "Google News (Oman economy)",
+      "kind": "تجميع عالمي",
+      "lang": "en",
+      "omaniOutlet": false,
+      "publishes": "irregular",
+      "active": true,
+      "aggregator": true,
+      "feeds": [
+        "https://news.google.com/rss/search?q=Oman+economy+OR+investment+OR+%22non-oil%22&hl=en&gl=US&ceid=US:en"
+      ],
+      "pages": [],
+      "linkPattern": ""
     }
   ]
 }

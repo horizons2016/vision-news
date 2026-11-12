@@ -19,6 +19,9 @@ from urllib.parse import urljoin, urlsplit
 import feedparser
 import requests
 from bs4 import BeautifulSoup
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # لمصادر verifySSL=false فقط
 
 from common import (CONFIG, STATE, article_id, classification_fields, clean_text, load_articles, now_iso,
                     read_json, save_articles, title_key, url_key, write_json)
@@ -36,11 +39,11 @@ session = requests.Session()
 session.headers.update({"User-Agent": UA, "Accept-Language": "ar,en;q=0.8"})
 
 
-def get(url: str) -> requests.Response:
+def get(url: str, verify: bool = True) -> requests.Response:
     last = None
     for attempt in range(2):
         try:
-            r = session.get(url, timeout=TIMEOUT, allow_redirects=True)
+            r = session.get(url, timeout=TIMEOUT, allow_redirects=True, verify=verify)
             if r.status_code >= 500 and attempt == 0:
                 time.sleep(3)
                 continue
@@ -64,8 +67,9 @@ def parse_date(entry) -> str | None:
 
 
 def from_feed(url: str, source: dict) -> list[dict]:
-    r = get(url)
+    r = get(url, source.get("verifySSL", True))
     feed = feedparser.parse(r.content)
+    via_google = "news.google.com" in url
     if feed.bozo and not feed.entries:
         raise RuntimeError(f"ملف RSS غير صالح: {type(feed.bozo_exception).__name__}")
     items = []
@@ -75,7 +79,7 @@ def from_feed(url: str, source: dict) -> list[dict]:
         if not title or not link:
             continue
         source_name = None
-        if source.get("aggregator"):
+        if source.get("aggregator") or via_google:
             # عناوين Google News تنتهي بـ " - اسم المصدر"
             src = e.get("source", {})
             source_name = (src.get("title") if isinstance(src, dict) else None)
@@ -88,8 +92,8 @@ def from_feed(url: str, source: dict) -> list[dict]:
     return items
 
 
-def from_page(url: str, pattern: str) -> list[dict]:
-    r = get(url)
+def from_page(url: str, pattern: str, verify: bool = True) -> list[dict]:
+    r = get(url, verify)
     soup = BeautifulSoup(r.text, "html.parser")
     rx = re.compile(pattern) if pattern else None
     host = urlsplit(r.url).hostname or ""
@@ -141,7 +145,7 @@ def collect_source(source: dict) -> tuple[list[dict], dict]:
             status["errors"].append(f"{url}: {short_error(e)}")
     for url in source.get("pages", []):
         try:
-            items = from_page(url, source.get("linkPattern", ""))
+            items = from_page(url, source.get("linkPattern", ""), source.get("verifySSL", True))
             if items:
                 status.update(method="page", url=url)
                 return items, status

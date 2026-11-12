@@ -57,7 +57,7 @@ def repo(tmp_path, monkeypatch):
     class Resp:
         def __init__(self, body): self.content = body.encode(); self.text = body; self.status_code = 200; self.url = "https://ex.om/rss"
         def raise_for_status(self): pass
-    monkeypatch.setattr(collect, "get", lambda url: Resp(RSS))
+    monkeypatch.setattr(collect, "get", lambda url, verify=True: Resp(RSS))
     monkeypatch.setattr(collect, "fetch_body", lambda url: "")
     return tmp_path, collect, build, ai, common
 
