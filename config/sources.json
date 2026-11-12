@@ -2,6 +2,25 @@
   "_تعليمات": "قائمة المصادر. لكل مصدر: feeds = روابط RSS/Atom تُجرَّب بالترتيب، و pages = صفحات أخبار تُقرأ عند فشل RSS. linkPattern نمط يجب أن يطابقه رابط الخبر عند قراءة الصفحات. omaniOutlet=true يعني أن أخبار المصدر تُعدّ عمانية ما لم يذكر العنوان بلدًا آخر. publishes = daily أو weekly أو irregular (لحساب تأخر المصدر). active=false لإيقاف المصدر دون حذفه. verifySSL=false لمواقع شهادتها الأمنية ناقصة. رابط Google News بصيغة site:الموقع بديل أخير للصحف التي تحجب القراءة الآلية.",
   "sources": [
     {
+      "id": "qanoon",
+      "nameAr": "قانون عُمان (المراسيم والقرارات)",
+      "nameEn": "Qanoon.om",
+      "kind": "تشريعات رسمية",
+      "lang": "ar",
+      "omaniOutlet": true,
+      "publishes": "irregular",
+      "active": true,
+      "feeds": [
+        "https://qanoon.om/feed/",
+        "https://www.qanoon.om/feed/",
+        "https://news.google.com/rss/search?q=site:qanoon.om&hl=ar&gl=OM&ceid=OM:ar"
+      ],
+      "pages": [
+        "https://qanoon.om/"
+      ],
+      "linkPattern": "qanoon\\.om/p/\\d{4}/"
+    },
+    {
       "id": "omandaily",
       "nameAr": "جريدة عُمان",
       "nameEn": "Oman Daily",

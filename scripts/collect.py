@@ -23,7 +23,7 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)  # لمصادر verifySSL=false فقط
 
-from common import (CONFIG, STATE, article_id, classification_fields, clean_text, load_articles, now_iso,
+from common import (CONFIG, STATE, article_id, classification_fields, clean_text, legislation_boost, load_articles, now_iso,
                     read_json, save_articles, title_key, url_key, write_json)
 from taxonomy.classify import classify
 
@@ -209,6 +209,7 @@ def run(only: str | None = None, fetch_bodies: bool = True) -> dict:
                 body = fetch_body(it["url"])
                 if body:
                     res = classify(it["title"], f"{it['summary']}\n{body}", omani)
+            res = legislation_boost(res, it["title"], it["summary"])
             if res.outcome not in ("relevant", "uncertain"):
                 seen[key] = {"v": res.outcome, "t": t0}
                 excluded.append({"t": t0, "source": sid, "title": it["title"][:200], "url": it["url"], "why": res.outcome})

@@ -45,7 +45,7 @@ def repo(tmp_path, monkeypatch):
     cfg.mkdir()
     (cfg / "sources.json").write_text(json.dumps({"sources": [{"id": "ex", "nameAr": "مثال", "nameEn": "Ex", "lang": "ar",
         "omaniOutlet": True, "publishes": "daily", "active": True, "feeds": ["https://ex.om/rss"], "pages": []}]}), encoding="utf-8")
-    for f in ("settings.json", "indicator_links.csv"):
+    for f in ("settings.json",):
         (cfg / f).write_bytes((ROOT / "config" / f).read_bytes())
     monkeypatch.setattr(common, "CONFIG", cfg)
     import collect, build, ai
@@ -101,3 +101,22 @@ def test_ai_result_rules():
     assert ai.apply_result({"id": "3"}, {"relevant": False, "confidence": 0.9}, "m", valid_p, valid_i) == "drop"
     assert ai.apply_result({"id": "4"}, {"relevant": True, "priority": "P99", "confidence": 0.9}, "m", valid_p, valid_i) == "drop"
     assert ai.parse('خطأ {"results":[{"i":0,"relevant":true}]} ') == [{"i": 0, "relevant": True}]
+
+
+def test_news_types_and_legislation():
+    import sys
+    from newstype import news_type, rule_digest
+    from common import legislation_boost
+    assert news_type("صدور مرسوم سلطاني بإصدار قانون العمل") == "decree"
+    assert news_type("قرار وزاري بتنظيم مزاولة المهنة") == "decision"
+    assert news_type("World Bank raises Oman's 2026 GDP growth forecast to 3.1%") == "international"
+    assert news_type("Oman signs two pacts for green hydrogen projects") == "agreement"
+    assert news_type("Oman port cargo jumps to 146 million tonnes") == "figures"
+    assert news_type("يتوقع نمو الاقتصاد") != "agreement"
+    r = legislation_boost(classify("مرسوم سلطاني رقم 5/2026 بإنشاء هيئة", "", True), "مرسوم سلطاني رقم 5/2026 بإنشاء هيئة", "")
+    assert r.outcome == "relevant" and r.priorities[0]["id"] == "vision_priority_11"
+    arts = [{"id": "a", "t": "توقيع 10 اتفاقيات استثمارية في الظاهرة", "s": "x", "d": "2026-11-01", "ty": "agreement", "lang": "ar"},
+            {"id": "b", "t": "توقيع 10 اتفاقيات استثمارية بمحافظة الظاهرة", "s": "y", "d": "2026-11-01", "ty": "agreement", "lang": "ar"},
+            {"id": "c", "t": "ملتقى للشباب", "s": "x", "d": "2026-11-02", "ty": "event", "lang": "ar"}]
+    d = rule_digest(arts)
+    assert d[0]["sources"] == 2 and set(d[0]["refs"]) == {"a", "b"} and len(d) == 2

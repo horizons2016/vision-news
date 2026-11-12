@@ -70,6 +70,16 @@ def call(kind: str, key: str, model: str, system: str, user: str) -> str:
     return r.json()["choices"][0]["message"]["content"]
 
 
+def parse_obj(text: str) -> dict | None:
+    m = re.search(r"\{[\s\S]*\}", text or "")
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(0))
+    except json.JSONDecodeError:
+        return None
+
+
 def parse(text: str) -> list[dict]:
     m = re.search(r"\{[\s\S]*\}", text)
     if not m:

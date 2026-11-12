@@ -5,7 +5,6 @@ const S = { meta: null, series: null, articles: null, uncertain: null, excluded:
 const AX_COLORS = { axis_1: "var(--ax1)", axis_2: "var(--ax2)", axis_3: "var(--ax3)", axis_4: "var(--ax4)" };
 const STATUS = { auto: "معتمد آليًا", confirmed: "مؤكد", review: "بانتظار التأكيد", uncertain: "محتمل", rejected: "مرفوض" };
 const METHOD = { rules: "القواعد", ai: "الذكاء الاصطناعي", manual: "الفريق" };
-const SIGNAL = { rising: "حراك متصاعد", falling: "تراجع", steady: "مستقر", none: "لا تغطية" };
 const KIND_DAYS = { daily: 2, weekly: 9, irregular: 30 };
 const DRAFT_KEY = "vision-news-decisions";
 const $ = (s, el = document) => el.querySelector(s);
@@ -70,7 +69,7 @@ function stackChart(weeks, layers, h = 190) {
 }
 
 /* ------------------------------------------------------------ عناصر مشتركة */
-function chipsP(codes) { return codes.map((c) => `<a class="chip" href="#/news?p=${c}" title="${esc(P(c)?.nameAr)}">${c} ${esc(P(c)?.nameAr || "")}</a>`).join(""); }
+function chipsP(codes) { return codes.map((c) => `<a class="chip" href="#/p/${c}" title="${esc(P(c)?.nameAr)}">${c} ${esc(P(c)?.nameAr || "")}</a>`).join(""); }
 function chipsI(codes) { return codes.map((c) => `<a class="chip i" href="#/news?i=${c}" title="${esc(I(c)?.nameAr)}">${c} ${esc(trim(I(c)?.nameAr, 48))}</a>`).join(""); }
 function trim(s, n) { s = s || ""; return s.length > n ? s.slice(0, n - 1) + "…" : s; }
 
@@ -86,11 +85,11 @@ function newsItem(a, opts = {}) {
     </div>` : "";
   return `<li>
     <a class="h" href="${esc(a.u)}" target="_blank" rel="noopener">${esc(a.t)}</a>
-    <div class="m">${esc(a.pub || srcName(a.s))} · ${dateAr(a.d)} · <span class="st ${a.st}">${STATUS[a.st]}</span> · ${METHOD[a.m] || a.m}</div>
-    <div>${chipsP(a.p)}${chipsI(a.i)}</div>
+    <div class="m">${opts.noType ? "" : typeChip(a.ty)} ${esc(a.pub || srcName(a.s))} · ${dateAr(a.d)}${a.st !== "auto" ? ` · <span class="st ${a.st}">${STATUS[a.st]}</span>` : ""}</div>
+    ${opts.compact ? "" : `<div>${chipsP(a.p)}${chipsI(a.i)}</div>`}
     ${a.x && opts.excerpt !== false ? `<div class="x">${esc(trim(a.x, 220))}</div>` : ""}
     ${a.ai ? `<div class="ai">🤖 ${esc(a.ai)} <span class="muted">(ثقة ${Math.round((a.ac || 0) * 100)}%)</span></div>` : ""}
-    <div>${(a.k || []).map((k) => `<span class="chip t">${esc(k)}</span>`).join("")}${reasons}</div>
+    ${opts.compact ? "" : `<div>${a.st === "auto" ? "" : (a.k || []).map((k) => `<span class="chip t">${esc(k)}</span>`).join("")}${reasons}</div>`}
     ${acts}
   </li>`;
 }
@@ -133,6 +132,20 @@ function assignDialog(a) {
 function weeksVals(code, kind = "priorities") { return (S.series[kind][code] || []).slice(); }
 function lastN(arr, n) { return arr.slice(-n).reduce((s, v) => s + v, 0); }
 
+async function report(id) { return S.reports[id] || (S.reports[id] = await getJSON(`data/reports/${id}.json`)); }
+function typeChip(ty) { const t = S.meta.types[ty] || S.meta.types.other; return `<span class="chip ty">${t.icon} ${esc(t.label)}</span>`; }
+
+/* الزبدة: نقاط مع روابط مصادرها */
+function digestHTML(dg, opts = {}) {
+  if (!dg || !dg.bullets.length) return `<p class="muted">لا أخبار في هذه الفترة.</p>`;
+  const byId = (id) => S.articles.find((a) => a.id === id);
+  return `<ul class="digest">${dg.bullets.slice(0, opts.limit || 8).map((b) => {
+    const refs = (b.refs || []).map(byId).filter(Boolean);
+    const icon = b.type ? (S.meta.types[b.type]?.icon || "") + " " : "";
+    return `<li><span>${icon}${esc(b.text)}</span>${refs.length ? `<span class="refs">${refs.slice(0, 4).map((a) => `<a href="${esc(a.u)}" target="_blank" rel="noopener">${esc(a.pub || srcName(a.s))}</a>`).join(" · ")}</span>` : ""}</li>`;
+  }).join("")}</ul>${opts.note !== false ? `<p class="dg-src">${dg.source === "ai" ? "صياغة الذكاء الاصطناعي من الأخبار المرفقة" : "مستخلصة آليًا من عناوين الأخبار (تُصاغ تحريريًا عند تفعيل الذكاء الاصطناعي)"}</p>` : ""}`;
+}
+
 function viewHome() {
   const m = S.meta, se = S.series, n = se.total.length;
   const thisW = se.total[n - 1], lastW = se.total[n - 2] || 0;
@@ -142,44 +155,87 @@ function viewHome() {
   const delta = (a, b) => { if (!b) return `<span class="muted">—</span>`; const p = Math.round(((a - b) / b) * 100); return `<span class="${p >= 0 ? "up" : "down"}">${p >= 0 ? "▲" : "▼"} ${fmt(Math.abs(p))}%</span>`; };
   const first = Math.max(0, se.total.findIndex((v) => v > 0));
   const layers = m.axes.map((ax) => ({ name: ax.nameAr, color: AX_COLORS[ax.id], vals: (se.axes[ax.id] || []).slice(first) }));
-  const weeksRev = se.weeks.slice(first);
-  const rising = m.indicators.filter((i) => m.signals[i.code]?.level === "rising").sort((a, b) => m.signals[b.code].recent - m.signals[a.code].recent);
-  const falling = m.indicators.filter((i) => m.signals[i.code]?.level === "falling");
-  const latest = S.articles.filter((a) => a.st === "auto" || a.st === "confirmed").slice(0, 8);
-  const maxP = Math.max(1, ...m.priorities.map((p) => lastN(weeksVals(p.code), 4)));
-
-  return `<h1>لوحة الحراك</h1><p class="sub">أخبار مرتبطة بأولويات رؤية عُمان 2040 ومؤشراتها — آخر تحديث ${dateAr(m.builtAt.slice(0, 10))}</p>
+  const counted = (a) => a.st === "auto" || a.st === "confirmed";
+  const legis = S.articles.filter((a) => counted(a) && (a.ty === "decree" || a.ty === "decision")).slice(0, 6);
+  const cur = m.digestPeriods[0];
+  setTimeout(async () => {
+    const box = $("#homeDigest"); if (!box || !cur) return;
+    const r = await report(cur.id);
+    box.innerHTML = digestHTML(r.digest, { limit: 7 });
+  });
+  return `<h1>ماذا يحدث في الرؤية؟</h1><p class="sub">رصد إخباري للمراسيم والقرارات والأخبار المرتبطة بأولويات رؤية عُمان 2040 — آخر تحديث ${dateAr(m.builtAt.slice(0, 10))}</p>
   <div class="grid g4">
-    <div class="card kpi"><div class="l">هذا الأسبوع (حتى الآن)</div><div class="v">${fmt(thisW)}</div><div class="d">الأسبوع الماضي ${fmt(lastW)}</div></div>
+    <div class="card kpi"><div class="l">أخبار هذا الأسبوع (حتى الآن)</div><div class="v">${fmt(thisW)}</div><div class="d">الأسبوع الماضي ${fmt(lastW)}</div></div>
     <div class="card kpi"><div class="l">آخر 4 أسابيع</div><div class="v">${fmt(r4)}</div><div class="d">${delta(r4, p4)} عن الأسابيع الأربعة قبلها</div></div>
-    <div class="card kpi"><div class="l">بانتظار تأكيد الفريق</div><div class="v">${fmt(m.totals.review)}</div><div class="d"><a href="#/review">مراجعة</a> · محتملة ${fmt(m.totals.uncertain)}</div></div>
-    <div class="card kpi"><div class="l">المصادر العاملة</div><div class="v">${m.lastRun ? `${fmt(okSrc)} / ${fmt(actSrc)}` : "—"}</div>${m.lastRun ? "" : `<div class="d muted">لم يعمل الجمع التلقائي بعد</div>`}<div class="d"><a href="#/sources">حالة المصادر</a></div></div>
+    <div class="card kpi"><div class="l">بانتظار تأكيد الفريق</div><div class="v">${fmt(m.totals.review)}</div><div class="d"><a href="#/review">مراجعة</a></div></div>
+    <div class="card kpi"><div class="l">المصادر العاملة</div><div class="v">${m.lastRun ? `${fmt(okSrc)} <span style="font-size:15px;font-weight:500" class="muted">من ${fmt(actSrc)}</span>` : "—"}</div><div class="d"><a href="#/sources">حالة المصادر</a></div></div>
   </div>
-  <div class="card" style="margin-top:16px"><div class="row"><h2>الحراك الأسبوعي حسب المحور</h2><span class="spacer"></span>
-    <div class="legend">${m.axes.map((a) => `<span><i style="background:${AX_COLORS[a.id]}"></i>${esc(a.nameAr)}</span>`).join("")}</div></div>
-    ${stackChart(weeksRev, layers)}</div>
-  <h2 style="margin-top:22px">الأولويات — آخر 4 أسابيع</h2>
-  <div class="grid g2">${m.axes.map((ax) => `<div class="card axis" style="--ax:${AX_COLORS[ax.id]}">
-      <h3>${esc(ax.nameAr)} <span>${fmt(ax.priorities.reduce((s, c) => s + lastN(weeksVals(c), 4), 0))} خبر</span></h3>
-      ${ax.priorities.map((c) => { const v = lastN(weeksVals(c), 4), sg = m.signals[c]; return `<div class="prow" data-go="#/news?p=${c}">
-        <div><div class="pn">${esc(P(c).nameAr)}</div><span class="sig ${sg.level}">${SIGNAL[sg.level]}</span></div>
-        <div>${spark(weeksVals(c).slice(-12), AX_COLORS[ax.id])}<div class="bar"><i style="width:${(v / maxP) * 100}%"></i></div></div>
-        <div class="num">${fmt(v)}</div></div>`; }).join("")}
-    </div>`).join("")}</div>
   <div class="grid g2" style="margin-top:16px">
-    <div class="card"><h2>إشارات الحراك على المؤشرات</h2>
-      <p class="note">مقارنة عدد الأخبار المرتبطة بكل مؤشر في آخر 4 أسابيع بمتوسطه في الأسابيع الـ12 السابقة. الإشارة تعكس حجم التغطية، ولا تعني أثرًا فعليًا على قيمة المؤشر.</p>
-      ${rising.length ? `<h3 class="up">حراك متصاعد</h3><table>${rising.slice(0, 8).map((i) => sigRow(i)).join("")}</table>` : `<p class="muted">لا يوجد حراك متصاعد حاليًا.</p>`}
-      ${falling.length ? `<h3 class="down" style="margin-top:12px">تراجع في التغطية</h3><table>${falling.slice(0, 6).map((i) => sigRow(i)).join("")}</table>` : ""}
-    </div>
-    <div class="card"><div class="row"><h2>أحدث الأخبار</h2><span class="spacer"></span><a href="#/news">الكل ←</a></div>
-      <ul class="news">${latest.map((a) => newsItem(a, { excerpt: false })).join("")}</ul></div>
-  </div>`;
+    <div class="card"><div class="row"><h2>الزبدة — ${esc(cur ? cur.name : "")}</h2><span class="spacer"></span>${cur ? `<a href="#/reports?id=${cur.id}">التقرير ←</a>` : ""}</div>
+      <div id="homeDigest"><p class="muted">…</p></div></div>
+    <div class="card"><div class="row"><h2>📜 أحدث المراسيم والقرارات</h2><span class="spacer"></span><a href="#/legislation">الكل ←</a></div>
+      <ul class="news">${legis.map((a) => newsItem(a, { excerpt: false, compact: true })).join("") || `<li class="muted">لا يوجد بعد.</li>`}</ul></div>
+  </div>
+  <h2 style="margin-top:22px">الأولويات — اختر أولويتك</h2>
+  <div class="grid g2">${m.axes.map((ax) => `<div class="card axis" style="--ax:${AX_COLORS[ax.id]}">
+      <h3>${esc(ax.nameAr)} <span>${fmt(ax.priorities.reduce((s, c) => s + lastN(weeksVals(c), 4), 0))} خبر في 4 أسابيع</span></h3>
+      ${ax.priorities.map((c) => { const v4 = lastN(weeksVals(c), 4), vw = lastN(weeksVals(c), 1); return `<a class="prow" href="#/p/${c}">
+        <div class="pn">${esc(P(c).nameAr)}</div>
+        <div>${spark(weeksVals(c).slice(-12), AX_COLORS[ax.id])}</div>
+        <div class="num" title="آخر 4 أسابيع">${fmt(v4)}<div class="muted" style="font-size:11px;font-weight:400">${fmt(vw)} هذا الأسبوع</div></div></a>`; }).join("")}
+    </div>`).join("")}</div>
+  <div class="card" style="margin-top:16px"><div class="row"><h2>عدد الأخبار أسبوعيًا حسب المحور</h2><span class="spacer"></span>
+    <div class="legend">${m.axes.map((a) => `<span><i style="background:${AX_COLORS[a.id]}"></i>${esc(a.nameAr)}</span>`).join("")}</div></div>
+    ${stackChart(se.weeks.slice(first), layers)}</div>`;
 }
-function sigRow(i) {
-  const s = S.meta.signals[i.code];
-  return `<tr class="ind-row" data-go="#/news?i=${i.code}"><td>${i.code}</td><td>${esc(i.nameAr)}<div class="muted" style="font-size:12px">${esc(P(i.priority).nameAr)}</div></td>
-    <td class="n">${fmt(s.recent)}<div class="muted" style="font-size:11px">المعتاد ${fmt(s.baseline)}</div></td><td>${spark(weeksVals(i.code, "indicators").slice(-12), "var(--brand2)", 80, 22)}</td></tr>`;
+
+/* --- صفحة الأولوية: لمختص الأولوية */
+async function viewPriority(code) {
+  const p = P(code); if (!p) return `<div class="card">أولوية غير معروفة.</div>`;
+  const ax = S.meta.axes.find((a) => a.id === p.axis);
+  const q = new URLSearchParams(location.hash.split("?")[1] || "");
+  const per = q.get("per") || S.meta.digestPeriods[0]?.id;
+  const perObj = S.meta.digestPeriods.find((x) => x.id === per) || S.meta.digestPeriods[0];
+  const r = perObj ? await report(perObj.id) : null;
+  const pr = r?.priorities.find((x) => x.code === code);
+  const counted = (a) => a.st === "auto" || a.st === "confirmed";
+  const inPer = S.articles.filter((a) => counted(a) && a.p.includes(code) && r && a.d >= r.start && a.d <= r.end);
+  const pending = S.articles.filter((a) => a.st === "review" && a.p.includes(code));
+  const order = ["decree", "decision", "international", "agreement", "figures", "project", "other", "event"];
+  const groups = order.map((ty) => [ty, inPer.filter((a) => (a.ty || "other") === ty)]).filter(([, l]) => l.length);
+  const inds = S.meta.indicators.filter((i) => i.priority === code).map((i) => [i, inPer.filter((a) => a.i.includes(i.code)).length]).filter(([, c]) => c);
+  return `<div class="row"><a href="#/">→ الرئيسية</a></div>
+  <h1 style="margin-top:8px">${code} — ${esc(p.nameAr)}</h1><p class="sub">محور ${esc(ax.nameAr)} · رابط هذه الصفحة ثابت ويمكن مشاركته مع مختص الأولوية</p>
+  <div class="tabs">${S.meta.digestPeriods.map((d) => `<button class="${d.id === perObj?.id ? "on" : ""}" onclick="location.hash='#/p/${code}?per=${d.id}'">${esc(d.name)}</button>`).join("")}</div>
+  <div class="card"><div class="row"><h2>الزبدة: ماذا حدث — ${esc(perObj?.label || "")}</h2><span class="spacer"></span><span class="muted">${fmt(inPer.length)} خبر${pr && pr.prev != null ? ` · الفترة السابقة ${fmt(pr.prev)}` : ""}</span></div>
+    ${digestHTML(pr?.digest)}</div>
+  ${inds.length ? `<div class="card flat" style="margin-top:12px"><b style="font-size:14px">المؤشرات التي تناولتها الأخبار:</b> ${inds.map(([i, c]) => `<a class="chip i" href="#/news?i=${i.code}">${i.code} ${esc(trim(i.nameAr, 60))} (${fmt(c)})</a>`).join("")}</div>` : ""}
+  ${pending.length ? `<div class="note" style="margin-top:12px">⏳ ${fmt(pending.length)} خبرًا لهذه الأولوية بانتظار التأكيد — <a href="#/news?st=review&p=${code}">راجعها</a></div>` : ""}
+  ${groups.map(([ty, list]) => `<div class="card" style="margin-top:14px"><h3>${S.meta.types[ty].icon} ${esc(S.meta.types[ty].label === "خبر" ? "أخبار أخرى" : S.meta.types[ty].label)} (${fmt(list.length)})</h3>
+     <ul class="news">${list.map((a) => newsItem(a, { actions: true, noType: true })).join("")}</ul></div>`).join("")}`;
+}
+
+/* --- المراسيم والقرارات */
+function viewLegislation(q) {
+  const ty = q.get("ty") || "";
+  const list = S.articles.filter((a) => (a.st === "auto" || a.st === "confirmed" || a.st === "review") && (ty ? a.ty === ty : a.ty === "decree" || a.ty === "decision"));
+  const n = +(q.get("n") || 60);
+  return `<h1>📜 المراسيم والقرارات</h1><p class="sub">المراسيم السلطانية والقرارات الوزارية واللوائح ذات الصلة بالرؤية، من المصادر الرسمية والصحف (ومنها قانون عُمان).</p>
+  <div class="tabs"><button class="${!ty ? "on" : ""}" onclick="location.hash='#/legislation'">الكل</button><button class="${ty === "decree" ? "on" : ""}" onclick="location.hash='#/legislation?ty=decree'">مراسيم سلطانية</button><button class="${ty === "decision" ? "on" : ""}" onclick="location.hash='#/legislation?ty=decision'">قرارات ولوائح</button></div>
+  <div class="card"><ul class="news">${list.slice(0, n).map((a) => newsItem(a, { actions: true })).join("") || `<li class="muted">لا يوجد بعد — تمتلئ بعد تشغيل الجمع من قانون عُمان والمصادر الرسمية.</li>`}</ul>
+  ${list.length > n ? `<div class="row" style="justify-content:center"><a class="btn" href="#/legislation?${ty ? `ty=${ty}&` : ""}n=${n + 100}">عرض المزيد</a></div>` : ""}</div>`;
+}
+
+/* --- الأولويات (فهرس) */
+function viewTaxonomy() {
+  const m = S.meta;
+  return `<h1>الأولويات والمؤشرات</h1><p class="sub">المحاور الأربعة ← 12 أولوية ← 38 مؤشرًا (القائمة المحدثة). اضغط الأولوية لفتح صفحتها. الأعداد = عدد الأخبار المصنفة تحت كل منها.</p>
+  ${m.axes.map((ax) => `<div class="card axis" style="--ax:${AX_COLORS[ax.id]};margin-bottom:16px"><h2>المحور ${ax.number}: ${esc(ax.nameAr)}</h2>
+    ${ax.priorities.map((c) => { const p = P(c); const inds = m.indicators.filter((i) => i.priority === c); return `
+      <h3 style="margin-top:14px" class="row"><a href="#/p/${c}">${c} — ${esc(p.nameAr)}</a><span class="spacer"></span>
+        <span class="muted" style="font-size:13px;font-weight:500">${fmt(m.totals.byPriority[c])} خبر · آخر 4 أسابيع ${fmt(lastN(weeksVals(c), 4))}</span></h3>
+      <table><tbody>${inds.map((i) => `<tr class="ind-row" data-go="#/news?i=${i.code}"><td style="width:52px">${i.code}</td><td>${esc(i.nameAr)}</td><td class="n">${fmt(m.totals.byIndicator[i.code])}</td><td class="n muted">${fmt(lastN(weeksVals(i.code, "indicators"), 4))}</td></tr>`).join("")}</tbody></table>`; }).join("")}
+  </div>`).join("")}`;
 }
 
 /* --- الأخبار */
@@ -234,22 +290,6 @@ function downloadCSV(rows) {
   const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "اخبار-الرؤية.csv"; link.click();
 }
 
-/* --- الأولويات والمؤشرات */
-function viewTaxonomy() {
-  const m = S.meta;
-  return `<h1>الأولويات والمؤشرات</h1><p class="sub">المحاور الأربعة ← 12 أولوية ← 38 مؤشرًا (القائمة المحدثة). الأعداد للأخبار المحتسبة؛ «آخر 4 أسابيع» مع إشارة الحراك.</p>
-  ${m.axes.map((ax) => `<div class="card axis" style="--ax:${AX_COLORS[ax.id]};margin-bottom:16px"><h2>المحور ${ax.number}: ${esc(ax.nameAr)}</h2>
-    ${ax.priorities.map((c) => { const p = P(c), sg = m.signals[c]; const inds = m.indicators.filter((i) => i.priority === c); return `
-      <h3 style="margin-top:14px" class="row"><a href="#/news?p=${c}">${c} — ${esc(p.nameAr)}</a> <span class="sig ${sg.level}">${SIGNAL[sg.level]}</span>
-        <span class="spacer"></span><span class="muted" style="font-size:13px;font-weight:500">الإجمالي ${fmt(m.totals.byPriority[c])} · آخر 4 أسابيع ${fmt(sg.recent)}</span></h3>
-      <table><thead><tr><th style="width:52px">الرمز</th><th>المؤشر</th><th class="n">الإجمالي</th><th class="n">آخر 4 أسابيع</th><th>الاتجاه (12 أسبوعًا)</th><th>الإشارة</th><th class="noprint">الداشبورد</th></tr></thead><tbody>
-      ${inds.map((i) => { const s = m.signals[i.code]; return `<tr class="ind-row" data-go="#/news?i=${i.code}"><td>${i.code}</td><td>${esc(i.nameAr)}</td><td class="n">${fmt(m.totals.byIndicator[i.code])}</td><td class="n">${fmt(s.recent)}</td>
-        <td>${spark(weeksVals(i.code, "indicators").slice(-12), AX_COLORS[ax.id], 90, 22)}</td><td><span class="sig ${s.level}">${SIGNAL[s.level]}</span></td>
-        <td class="noprint">${i.dashboardCode && m.dashboardUrl ? `<a href="${esc(m.dashboardUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(i.dashboardCode)}</a>` : `<span class="muted">—</span>`}</td></tr>`; }).join("")}
-      </tbody></table>`; }).join("")}
-  </div>`).join("")}`;
-}
-
 /* --- التقارير */
 async function viewReports(q) {
   const id = q.get("id");
@@ -267,23 +307,25 @@ async function viewReport(id) {
   setTimeout(() => ($("#print").onclick = () => window.print()));
   return `<div class="row noprint"><a href="#/reports">→ كل التقارير</a><span class="spacer"></span><button class="btn p" id="print">طباعة / PDF</button></div>
   <div class="card rep" style="margin-top:10px">
-    <h1>تقرير حراك رؤية عُمان 2040 ${kind}</h1><p class="sub">${esc(r.label)}${r.partial ? " — حتى الآن" : ""}</p>
+    <h1>الرصد الإخباري لرؤية عُمان 2040 — التقرير ${kind}</h1><p class="sub">${esc(r.label)}${r.partial ? " — حتى الآن" : ""}</p>
     <div class="grid g3"><div class="kpi"><div class="l">أخبار مرتبطة بالرؤية</div><div class="v">${fmt(r.total)}</div><div class="d">السابقة ${fmt(r.prevTotal)} ${ch(r.total, r.prevTotal)}</div></div>
       <div class="kpi"><div class="l">بانتظار تأكيد الفريق</div><div class="v">${fmt(r.awaiting)}</div></div>
       <div class="kpi"><div class="l">أولويات بلا أخبار</div><div class="v">${fmt(r.silentPriorities.length)}</div></div></div>
-    ${r.highlights.length ? `<ul class="hl">${r.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
+    <h2>الزبدة: ماذا حدث</h2>${digestHTML(r.digest)}
+    ${r.highlights.length ? `<h2>أرقام الحراك</h2><ul class="hl">${r.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
     <h2>حسب المحاور</h2><table><tr><th>المحور</th><th class="n">الأخبار</th><th class="n">السابقة</th><th class="n">التغير</th></tr>
       ${r.axes.map((a) => `<tr><td>${esc(a.nameAr)}</td><td class="n">${fmt(a.count)}</td><td class="n">${fmt(a.prev)}</td><td class="n">${ch(a.count, a.prev)}</td></tr>`).join("")}</table>
     <h2>حسب الأولويات</h2>
-    ${pr.filter((p) => p.count).map((p) => `<div style="margin:14px 0 18px"><h3>${p.code} — ${esc(p.nameAr)} <span class="muted" style="font-weight:500">(${fmt(p.count)}، السابقة ${fmt(p.prev)})</span></h3>
+    ${pr.filter((p) => p.count).map((p) => `<div style="margin:14px 0 18px"><h3><a href="#/p/${p.code}?per=${r.id}">${p.code} — ${esc(p.nameAr)}</a> <span class="muted" style="font-weight:500">(${fmt(p.count)}، السابقة ${fmt(p.prev)})</span></h3>
+      ${digestHTML(p.digest, { limit: 4, note: false })}
       ${p.indicators.length ? `<div>${p.indicators.map((i) => `<span class="chip i">${i.code} ${esc(trim(i.nameAr, 55))} (${fmt(i.count)})</span>`).join("")}</div>` : `<div class="muted" style="font-size:13px">ارتباط على مستوى الأولوية دون مؤشر محدد.</div>`}
-      <ul>${p.headlines.map((h) => `<li><a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.title)}</a> <span class="muted" style="font-size:12px">— ${esc(srcName(h.source))}، ${dateAr(h.date)}</span></li>`).join("")}</ul></div>`).join("")}
+      <details><summary class="muted" style="font-size:13px;cursor:pointer">المصادر (${fmt(p.headlines.length)})</summary><ul>${p.headlines.map((h) => `<li><a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.title)}</a> <span class="muted" style="font-size:12px">— ${esc(srcName(h.source))}، ${dateAr(h.date)}</span></li>`).join("")}</ul></details></div>`).join("")}
     ${r.silentPriorities.length ? `<h2>أولويات بلا أخبار</h2><p>${r.silentPriorities.map((c) => esc(P(c).nameAr)).join("، ")}</p>` : ""}
     <h2>المؤشرات</h2><table><tr><th>الرمز</th><th>المؤشر</th><th class="n">الأخبار</th><th class="n">السابقة</th></tr>
       ${r.indicators.map((i) => `<tr><td>${i.code}</td><td>${esc(i.nameAr)}</td><td class="n">${fmt(i.count)}</td><td class="n">${fmt(i.prev)}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">لا يوجد</td></tr>`}</table>
     <p class="muted" style="font-size:13px">مؤشرات بلا أي خبر في هذه الفترة: ${fmt(r.silentIndicators.length)} من 38.</p>
     <h2>المصادر</h2><p>${r.sources.map((s) => `${esc(s.nameAr)} (${fmt(s.count)})`).join("، ") || "—"}</p>
-    <p class="note">يعكس التقرير حجم التغطية الإعلامية المرتبطة بأولويات الرؤية ومؤشراتها وفق قواعد تصنيف موثقة (الإصدار ${esc(S.meta.rulesVersion)}). عدد الأخبار مؤشر على الحراك، وليس قياسًا للأثر أو الإنجاز.</p>
+    <p class="note">رصد إخباري لما نُشر عن أولويات رؤية عُمان 2040، مصنَّف وفق قواعد موثقة (الإصدار ${esc(S.meta.rulesVersion)}). الزبدة مستخلصة من الأخبار المرفقة روابطها.</p>
   </div>`;
 }
 
@@ -344,31 +386,33 @@ function viewSources() {
 
 function viewAbout() {
   const m = S.meta;
-  return `<div class="card" style="max-width:860px"><h1>المنهجية</h1>
-  <h2 style="margin-top:16px">ماذا يُرصد؟</h2><p>الأخبار المنشورة في المصادر العُمانية الرسمية والصحفية، وما تنشره المصادر العالمية عن عُمان. لا يُحفظ أي خبر لمجرد ذكره الرؤية؛ يُحفظ فقط ما يثبت ارتباطه بأولوية من أولوياتها الـ12 أو بمؤشر من مؤشراتها الـ38 (القائمة المحدثة).</p>
-  <h2>كيف يُصنَّف؟</h2><ol>
-    <li><b>السياق العُماني:</b> ذكر عُمان أو محافظاتها أو ولاياتها أو مؤسساتها، أو أن الخبر من صحيفة عمانية ولا يتحدث عن بلد آخر.</li>
-    <li><b>الأولوية:</b> مصطلحات موضوعية لكل أولوية؛ للعنوان وزن مضاعف. تُثبت الأولوية بثلاث نقاط فأكثر أو بمؤشر تابع لها.</li>
-    <li><b>المؤشر:</b> لا يُربط الخبر بمؤشر إلا بدليل مباشر (اسم المؤشر أو مصطلح يحرّكه مباشرة). الربط بالأولوية وحدها مقبول.</li>
+  return `<div class="card" style="max-width:860px"><h1>عن الرصد</h1>
+  <p>رصد إخباري لحراك رؤية عُمان 2040: يجمع الأخبار والمراسيم والقرارات، ويُبقي فقط ما يرتبط بأولويات الرؤية، ويوزعه على الأولويات حتى يعرف مختص كل أولوية ما حدث فيها. البيانات الإحصائية للمؤشرات مكانها داشبورد «مؤشرات الرؤية»، وليست هنا.</p>
+  <h2 style="margin-top:16px">المصادر</h2><p>الصحف العُمانية ووكالة الأنباء، وقانون عُمان للمراسيم والقرارات، وما تنشره المصادر العالمية عن عُمان. يُجمع كل 3 ساعات.</p>
+  <h2>التصنيف</h2><ol>
+    <li><b>السياق العُماني:</b> ذكر عُمان أو محافظاتها أو مؤسساتها، أو أن الخبر من صحيفة عمانية ولا يتحدث عن بلد آخر.</li>
+    <li><b>الأولوية:</b> مصطلحات لكل أولوية؛ للعنوان وزن مضاعف. المراسيم والقرارات تُحفظ دائمًا وتُربط بأولوية التشريع والقضاء والرقابة، إضافة لأي أولوية يمسّها موضوعها.</li>
+    <li><b>المؤشر:</b> وسم إضافي حين يتناول الخبر موضوع المؤشر مباشرة.</li>
+    <li><b>نوع الخبر:</b> مرسوم، قرار، تقييم دولي، اتفاقية، أرقام، مشروع، فعالية.</li>
     <li><b>الاستبعاد:</b> الرياضة والطقس والحوادث والتعازي والأخبار الخارجية.</li>
-    <li><b>بانتظار التأكيد:</b> أولويتان متقاربتان، أو سياق عماني ضعيف، أو دليل مؤشر ضعيف، أو نفي وشائعة. هذه لا تُحتسب حتى يؤكدها الفريق.</li>
-    <li><b>المحتملة:</b> إشارة موضوعية دون حد الإثبات. يحسمها الذكاء الاصطناعي إن فُعّل (ثقة 75% فأكثر تُعتمد، 50–75% تُحال للتأكيد)، وإلا تبقى للفريق.</li></ol>
-  <h2>إشارات الحراك</h2><p>لكل أولوية ومؤشر: عدد الأخبار في آخر 4 أسابيع مقابل متوسطه في الأسابيع الـ12 السابقة. «حراك متصاعد» إذا بلغ 3 أخبار فأكثر و1.5 ضعف المعتاد. الإشارة تقيس التغطية الإعلامية فقط، ولا تثبت أثرًا على قيمة المؤشر. هي مدخل لسؤال: هل يُتوقع أن يتحرك المؤشر؟</p>
-  <h2>ما يُحفظ</h2><p>العنوان ومقتطف قصير ورابط المصدر والتصنيف وسببه. لا يُعاد نشر نص الخبر.</p>
+    <li><b>بانتظار التأكيد:</b> حالات ملتبسة لا تُحتسب حتى يؤكدها الفريق.</li></ol>
+  <h2>الزبدة</h2><p>لكل أولوية ولكل فترة: أهم ما حدث في نقاط. بدون ذكاء اصطناعي تُستخلص بتجميع تغطيات الحدث الواحد وترتيبها حسب النوع وعدد المصادر. ومع تفعيله تُصاغ تحريريًا («وقّعت… صدر… ارتفع…») من الأخبار نفسها، مع روابطها.</p>
+  <h2>ما يُحفظ</h2><p>العنوان ومقتطف قصير ورابط المصدر والتصنيف. لا يُعاد نشر نص الخبر.</p>
   <p class="muted">إصدار القواعد: ${esc(m.rulesVersion)} · آخر بناء: ${new Date(m.builtAt).toLocaleString("ar-OM-u-nu-latn")}</p></div>`;
 }
 
 /* ------------------------------------------------------------ التوجيه */
 async function loadUncertain() { return S.uncertain || (S.uncertain = await getJSON("data/uncertain.json")); }
 
-const VIEWS = { home: viewHome, news: viewNews, taxonomy: viewTaxonomy, reports: viewReports, review: viewReview, sources: viewSources, about: viewAbout };
+const VIEWS = { home: viewHome, news: viewNews, taxonomy: viewTaxonomy, legislation: viewLegislation, reports: viewReports, review: viewReview, sources: viewSources, about: viewAbout };
 async function route() {
   const [path, qs] = (location.hash.slice(2) || "").split("?");
-  const name = VIEWS[path] ? path : "home";
+  const isP = /^p\/P\d\d$/.test(path || "");
+  const name = isP ? "taxonomy" : VIEWS[path] ? path : "home";
   document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("on", a.dataset.r === name));
   const app = $("#app");
   try {
-    app.innerHTML = await VIEWS[name](new URLSearchParams(qs || ""));
+    app.innerHTML = isP ? await viewPriority(path.slice(2)) : await VIEWS[name](new URLSearchParams(qs || ""));
   } catch (e) {
     app.innerHTML = `<div class="card"><h2>تعذر عرض الصفحة</h2><p class="muted">${esc(e.message)}</p></div>`;
   }

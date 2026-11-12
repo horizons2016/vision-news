@@ -136,3 +136,19 @@ def classification_fields(result, method: str = "rules") -> dict:
         "reasons": result.review_reasons,
         "rulesVersion": rules.version,
     }
+
+
+def legislation_boost(result, title: str, excerpt: str):
+    """المراسيم السلطانية والقرارات تُحفظ دائمًا (إن كانت عُمانية) وتُربط بأولوية التشريع والقضاء والرقابة."""
+    from newstype import news_type
+    if result.oman_context == "none" or news_type(title, excerpt) not in ("decree", "decision"):
+        return result
+    if not any(p["id"] == "vision_priority_11" for p in result.priorities):
+        result.priorities = result.priorities + [{"id": "vision_priority_11", "score": 3, "terms": ["تشريع"]}]
+    if result.outcome != "relevant":
+        result.outcome = "relevant"
+        result.priorities = [p for p in result.priorities if p["id"] == "vision_priority_11"] + \
+            [p for p in result.priorities if p["id"] != "vision_priority_11" and p["score"] >= 3]
+        result.indicators = []
+        result.review_reasons = ["priority_only"]
+    return result

@@ -19,6 +19,7 @@ from datetime import date, datetime, timedelta
 
 from common import (CONFIG, DATA, REPORTS, SITE, STATE, TAXONOMY, load_articles, now_iso, read_json, to_muscat,
                     write_json)
+from newstype import TYPES, news_type, rule_digest
 
 COUNTED = {"auto", "confirmed"}
 DECISION_WORDS = {"تأكيد": "confirm", "confirm": "confirm", "رفض": "reject", "reject": "reject",
@@ -46,15 +47,6 @@ def load_taxonomy():
     axes = [{"id": a["id"], "number": a["number"], "nameAr": a["nameAr"], "nameEn": a["nameEn"],
              "priorities": [f"P{n:02d}" for n in a["priorities"]]} for a in ref["axes"]]
     return axes, pri, ind
-
-
-def load_links() -> dict:
-    path = CONFIG / "indicator_links.csv"
-    if not path.exists():
-        return {}
-    rows = csv.reader(io.StringIO(path.read_text(encoding="utf-8-sig")))
-    next(rows, None)
-    return {r[0].strip(): r[2].strip() for r in rows if len(r) >= 3 and r[2].strip()}
 
 
 # ---------------------------------------------------------------- القرارات
@@ -132,6 +124,27 @@ def label_month(s: date) -> str:
     return f"{AR_MONTHS[s.month - 1]} {s.year}"
 
 
+# ---------------------------------------------------------------- الخبر المختصر للموقع
+def compact(a):
+    return {
+        "id": a["id"], "t": a["title"], "u": a["url"], "s": a["source"], "pub": a.get("publisher"),
+        "d": art_day(a).isoformat(), "st": a["status"], "m": a.get("method", "rules"),
+        "ty": news_type(a["title"], a.get("excerpt", "")), "lang": a.get("lang", "ar"),
+        "p": [x["id"] for x in a.get("priorities", [])], "i": [x["id"] for x in a.get("indicators", [])],
+        "k": a.get("terms", [])[:6], "r": a.get("reasons", []), "x": (a.get("excerpt") or "")[:220],
+        **({"ai": a["ai"].get("note"), "ac": a["ai"].get("confidence")} if a.get("ai") else {}),
+        **({"dec": a["decision"]} if a.get("decision") else {}),
+    }
+
+
+def digest_for(period_id: str, code: str, arts: list) -> dict:
+    """الزبدة: من الذكاء الاصطناعي إن وُجد ملخص محفوظ، وإلا بالقواعد."""
+    saved = read_json(DATA / "summaries" / period_id / f"{code}.json", None)
+    if saved and saved.get("bullets"):
+        return {"source": "ai", "bullets": saved["bullets"]}
+    return {"source": "rules", "bullets": rule_digest([compact(a) for a in arts], 6 if code == "ALL" else 5)}
+
+
 # ---------------------------------------------------------------- التقارير
 def period_report(kind, start, end, today, counted, review_all, pri, ind, axes, sources, prev_counted):
     def in_range(arts, s, e):
@@ -164,8 +177,10 @@ def period_report(kind, start, end, today, counted, review_all, pri, ind, axes, 
                       key=lambda a: (-(a["priorities"][0]["score"] if primary(a) == code else 0), a.get("publishedAt") or ""))
         top_ind = [{"code": c, "nameAr": ind[c]["nameAr"], "count": ic[c]} for c in ind if ind[c]["priority"] == code and ic[c]]
         top_ind.sort(key=lambda x: -x["count"])
+        rid_ = ("w-" if kind == "week" else "m-") + start.isoformat()
         priorities.append({
             "code": code, "nameAr": p["nameAr"], "axis": p["axis"], "count": pc[code], "prev": ppc[code],
+            "digest": digest_for(rid_, code, arts) if arts else {"source": "rules", "bullets": []},
             "indicators": top_ind,
             "headlines": [{"id": a["id"], "title": a["title"], "url": a["url"], "source": a["source"],
                            "date": art_day(a).isoformat()} for a in arts[:5]],
@@ -207,6 +222,8 @@ def period_report(kind, start, end, today, counted, review_all, pri, ind, axes, 
         "silentIndicators": [c for c in ind if not ic[c]],
         "sources": [{"id": s, "nameAr": sources.get(s, {}).get("nameAr", s), "count": n} for s, n in src.most_common()],
         "highlights": highlights,
+        "digest": digest_for(rid, "ALL", cur),
+        "types": dict(Counter(news_type(a["title"], a.get("excerpt", "")) for a in cur)),
     }
 
 
@@ -215,8 +232,10 @@ def report_markdown(r: dict, pri: dict) -> str:
     out = [f"# تقرير حراك رؤية عُمان 2040 {kind}", "", f"**الفترة:** {r['label']}" + (" (حتى الآن)" if r["partial"] else ""), "",
            f"- الأخبار المرتبطة بالرؤية: **{r['total']}** (الفترة السابقة: {r['prevTotal']})",
            f"- بانتظار تأكيد الفريق: {r['awaiting']}", ""]
+    if r["digest"]["bullets"]:
+        out += ["## الزبدة: ماذا حدث", ""] + [f"- {TYPES[b['type']]['icon'] + ' ' if b.get('type') else ''}{b['text']}" for b in r["digest"]["bullets"]] + [""]
     if r["highlights"]:
-        out += ["## أبرز الملاحظات", ""] + [f"- {h}" for h in r["highlights"]] + [""]
+        out += ["## أرقام الحراك", ""] + [f"- {h}" for h in r["highlights"]] + [""]
     out += ["## حسب المحاور", "", "| المحور | الأخبار | السابقة |", "|---|---|---|"]
     out += [f"| {a['nameAr']} | {a['count']} | {a['prev']} |" for a in r["axes"]] + [""]
     out += ["## حسب الأولويات", ""]
@@ -224,49 +243,18 @@ def report_markdown(r: dict, pri: dict) -> str:
         if not p["count"]:
             continue
         out.append(f"### {p['code']} — {p['nameAr']} ({p['count']})")
+        out += [f"- **{b['text']}**" for b in p["digest"]["bullets"][:4]]
         if p["indicators"]:
             out.append("المؤشرات: " + "، ".join(f"{i['nameAr']} ({i['count']})" for i in p["indicators"]))
-        out += [f"- [{h['title']}]({h['url']}) — {h['date']}" for h in p["headlines"]] + [""]
-    out += ["---", "*إشارات الحراك تعكس حجم التغطية الإعلامية المرتبطة بكل مؤشر، ولا تقيس الأثر الفعلي على قيمة المؤشر.*", ""]
+        out += ["", "المصادر:"] + [f"- [{h['title']}]({h['url']}) — {h['date']}" for h in p["headlines"]] + [""]
+    out += ["---", "*رصد إخباري لما نُشر عن أولويات رؤية عُمان 2040؛ الزبدة مستخلصة من الأخبار المرفقة روابطها.*", ""]
     return "\n".join(out)
-
-
-# ---------------------------------------------------------------- الإشارات
-def signals(counted, ind, pri, today):
-    """حراك آخر 4 أسابيع مقارنة بمتوسط الـ12 أسبوعًا التي قبلها (لكل 4 أسابيع)."""
-    ws = week_start(today)
-    recent_start = ws - timedelta(weeks=3)
-    base_start = recent_start - timedelta(weeks=12)
-    out = {}
-    for code_map, field in ((ind, "indicators"), (pri, "priorities")):
-        r, b = Counter(), Counter()
-        for a in counted:
-            d = art_day(a)
-            ids = {x["id"] for x in a.get(field, [])}
-            for c in ids:
-                if d >= recent_start:
-                    r[c] += 1
-                elif d >= base_start:
-                    b[c] += 1
-        for c in code_map:
-            base = b[c] / 3  # متوسط لكل 4 أسابيع
-            if r[c] == 0 and b[c] == 0:
-                level = "none"
-            elif r[c] >= 3 and r[c] >= 1.5 * max(base, 1):
-                level = "rising"
-            elif (r[c] == 0 and base >= 1) or (base >= 3 and r[c] <= 0.5 * base):
-                level = "falling"
-            else:
-                level = "steady"
-            out[c] = {"recent": r[c], "baseline": round(base, 1), "level": level}
-    return out
 
 
 # ---------------------------------------------------------------- البناء
 def main() -> int:
     settings = read_json(CONFIG / "settings.json", {})
     axes, pri, ind = load_taxonomy()
-    links = load_links()
     sources_cfg = {s["id"]: s for s in read_json(CONFIG / "sources.json", {"sources": []})["sources"]}
     health = read_json(STATE / "sources_status.json", {})
     articles = load_articles()
@@ -304,6 +292,11 @@ def main() -> int:
             continue
         reports.append(period_report("month", s, next_month(s), today, counted, review, pri, ind, axes, sources_cfg, counted))
     reports = [r for r in reports if r["total"] or r["partial"] or r["awaiting"]]
+    want = ["w-" + ws.isoformat(), "w-" + (ws - timedelta(days=7)).isoformat(), "m-" + ms.isoformat(),
+            "m-" + month_start(ms - timedelta(days=1)).isoformat()]
+    names = ["هذا الأسبوع", "الأسبوع الماضي", "هذا الشهر", "الشهر الماضي"]
+    have = {r["id"]: r for r in reports}
+    digest_periods = [{"id": w, "name": n, "label": have[w]["label"]} for w, n in zip(want, names) if w in have]
 
     # سلاسل أسبوعية لكل أولوية ومؤشر (آخر 26 أسبوعًا)
     weeks = [(ws - timedelta(weeks=k)).isoformat() for k in range(25, -1, -1)]
@@ -326,15 +319,6 @@ def main() -> int:
     totals_p = Counter(c for a in counted for c in {x["id"] for x in a.get("priorities", [])})
     totals_i = Counter(c for a in counted for c in {x["id"] for x in a.get("indicators", [])})
 
-    def compact(a):
-        return {
-            "id": a["id"], "t": a["title"], "u": a["url"], "s": a["source"], "pub": a.get("publisher"),
-            "d": art_day(a).isoformat(), "st": a["status"], "m": a.get("method", "rules"),
-            "p": [x["id"] for x in a.get("priorities", [])], "i": [x["id"] for x in a.get("indicators", [])],
-            "k": a.get("terms", [])[:6], "r": a.get("reasons", []), "x": (a.get("excerpt") or "")[:220],
-            **({"ai": a["ai"].get("note"), "ac": a["ai"].get("confidence")} if a.get("ai") else {}),
-            **({"dec": a["decision"]} if a.get("decision") else {}),
-        }
 
     by_date = lambda a: (art_day(a).isoformat(), a["id"])  # noqa: E731
     src_out = []
@@ -351,15 +335,14 @@ def main() -> int:
     runs = read_json(STATE / "runs.json", [])
     meta = {
         "builtAt": now_iso(), "today": today.isoformat(), "siteTitle": settings.get("siteTitle", "رصد الرؤية"),
-        "dashboardUrl": settings.get("indicatorsDashboardUrl"),
         "rulesVersion": json.loads((TAXONOMY / "rules.json").read_text(encoding="utf-8"))["version"],
         "axes": axes, "priorities": list(pri.values()),
-        "indicators": [{**v, "dashboardCode": links.get(c)} for c, v in ind.items()],
+        "indicators": list(ind.values()), "types": TYPES,
         "totals": {"counted": len(counted), "review": len(review), "uncertain": len(uncertain),
                    "rejected": sum(1 for a in arts if a["status"] == "rejected"),
                    "byPriority": totals_p, "byIndicator": totals_i,
                    "byMethod": Counter(a.get("method", "rules") for a in counted)},
-        "signals": signals(counted, ind, pri, today), "sources": src_out,
+        "sources": src_out, "digestPeriods": digest_periods,
         "lastRun": runs[-1] if runs else None, "reasonLabels": json.loads((TAXONOMY / "rules.json").read_text(encoding="utf-8"))["review_reason_labels"],
         "reports": [{"id": r["id"], "type": r["type"], "label": r["label"], "total": r["total"], "partial": r["partial"]} for r in reports],
     }
