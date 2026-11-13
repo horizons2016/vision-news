@@ -144,3 +144,26 @@ def test_newsletter(repo, monkeypatch):
     assert "الهيدروجين" in body and "ex.om" in body and "<img" not in body
     with pytest.raises(SystemExit):  # لا إرسال مكرر لنفس الأسبوع
         newsletter.main(["send", "--week", "2026-11-08"])
+
+
+def test_newsletter_encrypted_list(repo, monkeypatch):
+    tmp, collect, build, ai, common = repo
+    import shutil
+    import newsletter
+    collect.run()
+    monkeypatch.setenv("BUILD_TODAY", "2026-11-14")
+    assert build.main() == 0
+    monkeypatch.setattr(newsletter, "SITE", common.SITE)
+    monkeypatch.setattr(newsletter, "STATE", common.STATE)
+    (tmp / "data").mkdir(exist_ok=True)
+    shutil.copy(ROOT / "tests" / "fixtures" / "recipients.enc", tmp / "data" / "recipients.enc")  # أُنشئ بكود صفحة الإدارة (JS)
+    sent = []
+    monkeypatch.setattr(newsletter, "smtp_send", lambda msgs: sent.extend(msgs))
+    monkeypatch.setenv("SMTP_USER", "me@gmail.com")
+    monkeypatch.delenv("RECIPIENTS", raising=False)
+    monkeypatch.setenv("RECIPIENTS_KEY", "test-passphrase-123")
+    assert newsletter.main(["send", "--week", "2026-11-08"]) == 0
+    assert sorted(m["To"] for m in sent) == ["ahmed@example.om", "boss@example.om"]  # الموقوف لا يُرسل له
+    monkeypatch.setenv("RECIPIENTS_KEY", "wrong-pass")
+    with pytest.raises(SystemExit):  # كلمة سر خاطئة = لا مستلمين = لا إرسال
+        newsletter.main(["send", "--week", "2026-11-08", "--force"])

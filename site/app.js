@@ -472,7 +472,7 @@ function viewAbout() {
 /* ------------------------------------------------------------ التوجيه */
 async function loadUncertain() { return S.uncertain || (S.uncertain = await getJSON("data/uncertain.json")); }
 
-const VIEWS = { home: viewHome, news: viewNews, taxonomy: viewTaxonomy, analysis: viewAnalysis, legislation: viewLegislation, reports: viewReports, review: viewReview, sources: viewSources, about: viewAbout };
+const VIEWS = { admin: viewAdmin, home: viewHome, news: viewNews, taxonomy: viewTaxonomy, analysis: viewAnalysis, legislation: viewLegislation, reports: viewReports, review: viewReview, sources: viewSources, about: viewAbout };
 async function route() {
   const [path, qs] = (location.hash.slice(2) || "").split("?");
   const isP = /^p\/P\d\d$/.test(path || "");

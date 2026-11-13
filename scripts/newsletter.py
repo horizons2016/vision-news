@@ -9,7 +9,8 @@
 الإعداد كله في أسرار GitHub (لا يُكتب أي بريد في المستودع العام):
   SMTP_USER       عنوان Gmail المرسِل
   SMTP_PASSWORD   كلمة مرور التطبيقات (App Password) لهذا الحساب
-  RECIPIENTS      سطر لكل مستلم:  البريد, رموز الأولويات أو ALL
+  RECIPIENTS_KEY  كلمة سر القائمة البريدية المشفّرة data/recipients.enc (تُدار من صفحة «إدارة المنصة»)
+  RECIPIENTS      (بديل اختياري) سطر لكل مستلم:  البريد, رموز الأولويات أو ALL
                   مثال:  ahmed@economy.gov.om, P06 P08
   PREVIEW_TO      (اختياري) بريد المعاينة؛ الافتراضي SMTP_USER
 
@@ -206,6 +207,19 @@ def main(argv=None) -> int:
     meta, report, arts = load(a.week)
     valid = {p["code"] for p in meta["priorities"]}
     recipients, errors = parse_recipients(os.getenv("RECIPIENTS", ""), valid)
+    enc = SITE.parent / "data" / "recipients.enc"
+    if enc.exists():
+        if not os.getenv("RECIPIENTS_KEY"):
+            errors.append("توجد قائمة مشفّرة لكن السر RECIPIENTS_KEY غير مضاف في GitHub")
+        else:
+            from recipients import decrypt
+            try:
+                for r in decrypt(enc.read_text(encoding="utf-8"), os.environ["RECIPIENTS_KEY"]):
+                    codes = [c for c in r.get("codes", []) if c == "ALL" or c in valid]
+                    if r.get("active", True) and r.get("email") and codes and r["email"] not in {x["email"] for x in recipients}:
+                        recipients.append({"email": r["email"], "codes": codes, "name": r.get("name", "")})
+            except Exception:
+                errors.append("تعذر فك القائمة المشفّرة: RECIPIENTS_KEY لا يطابق كلمة سر القائمة")
     for err in errors:
         print("تنبيه RECIPIENTS:", err)
 

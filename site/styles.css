@@ -211,3 +211,12 @@ textarea.code{width:100%;min-height:150px;font-family:ui-monospace,Consolas,mono
   .hero h1{color:#000}
   a{color:var(--ink);text-decoration:none}
 }
+
+/* الإدارة */
+#nav a.adm-link{margin-inline-start:auto;color:var(--muted)}
+#nav a.adm-link.on{color:#fff}
+.admt input:not([type=checkbox]){width:100%;min-width:150px;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+.admt td{vertical-align:top}
+.pcodes{display:flex;flex-wrap:wrap;gap:4px;max-width:420px}
+.pcodes label{display:inline-flex;gap:3px;align-items:center;font-size:12px;background:#f3f0f9;border-radius:6px;padding:2px 6px;cursor:pointer}
+.sw{display:inline-flex;gap:4px;align-items:center;font-size:13px;white-space:nowrap}

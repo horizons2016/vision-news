@@ -43,6 +43,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           RECIPIENTS: ${{ secrets.RECIPIENTS }}
+          RECIPIENTS_KEY: ${{ secrets.RECIPIENTS_KEY }}
           PREVIEW_TO: ${{ secrets.PREVIEW_TO }}
         run: |
           ARGS="${{ inputs.mode || 'preview' }}"
