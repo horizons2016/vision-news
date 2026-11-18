@@ -126,5 +126,13 @@
   "kept": 34,
   "excluded": 48,
   "duplicates": 4
+ },
+ {
+  "at": "2026-11-18T11:59:08+00:00",
+  "found": 763,
+  "new": 191,
+  "kept": 57,
+  "excluded": 116,
+  "duplicates": 10
  }
 ]
