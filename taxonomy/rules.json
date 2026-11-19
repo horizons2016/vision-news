@@ -1,5 +1,5 @@
 {
- "version": "annex2-rules-v3",
+ "version": "annex2-rules-v3.1",
  "thresholds": {
   "INDICATOR_MIN_SCORE": 2,
   "PRIORITY_MIN_SCORE": 3,
@@ -1406,7 +1406,23 @@
   "africa",
   "sudan",
   "nasa",
-  "mars"
+  "mars",
+  "الشارقة",
+  "عجمان",
+  "رأس الخيمة",
+  "الفجيرة",
+  "جدة",
+  "المنامة",
+  "بغداد",
+  "دمشق",
+  "بيروت",
+  "sharjah",
+  "ajman",
+  "jeddah",
+  "manama",
+  "baghdad",
+  "damascus",
+  "beirut"
  ],
  "denial_terms": [
   "تنفي",

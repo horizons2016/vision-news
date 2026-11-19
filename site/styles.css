@@ -220,3 +220,32 @@ textarea.code{width:100%;min-height:150px;font-family:ui-monospace,Consolas,mono
 .pcodes{display:flex;flex-wrap:wrap;gap:4px;max-width:420px}
 .pcodes label{display:inline-flex;gap:3px;align-items:center;font-size:12px;background:#f3f0f9;border-radius:6px;padding:2px 6px;cursor:pointer}
 .sw{display:inline-flex;gap:4px;align-items:center;font-size:13px;white-space:nowrap}
+
+/* وضع الفريق: أدوات التشغيل لا تظهر للمختص */
+.team-only{display:none!important}
+body.team .team-only{display:inline-block!important}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:inherit;padding:0}
+.draftbar{position:fixed;inset:auto 12px 12px 12px;max-width:640px;margin:0 auto;z-index:30;display:flex;gap:10px;align-items:center;background:#2e2650;color:#fff;border-radius:12px;padding:10px 14px;box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:14px}
+.draftbar.hidden{display:none}
+.note.readme{margin:12px 0 0;border-inline-start:3px solid var(--brand2)}
+
+/* القوائم المطوية والجداول العريضة */
+details.more>summary{cursor:pointer;color:var(--brand2);font-size:14px;margin-top:8px;list-style:none}
+details.more>summary::before{content:"＋ "}
+details.more[open]>summary::before{content:"－ "}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.card table{max-width:100%}
+
+/* الجوال: بطاقات الأرقام 2×2 مدمجة، وإخفاء الأعمدة الثانوية */
+@media(max-width:700px){
+  .kpis{grid-template-columns:1fr 1fr!important;gap:10px}
+  .kpis .kpi{padding:12px 12px 10px}
+  .kpis .kpi .v{font-size:24px}
+  .kpis .kpi .v.sm{font-size:14.5px}
+  .kpis .kpi .l{font-size:12.5px}
+  .kpis .kpi .d{font-size:11.5px;line-height:1.5}
+  .hide-m{display:none}
+  table.prio td,table.prio th{padding:6px 4px;font-size:12.5px}
+  .card{padding:14px}
+}
+.draftbar:not(.hidden) ~ .toast{bottom:84px}

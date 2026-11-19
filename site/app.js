@@ -21,18 +21,39 @@ async function getJSON(path) {
   return r.json();
 }
 
+/* ------------------------------------------------------------ وضع الفريق
+   المختص يرى الأخبار والخلاصة فقط. أدوات التشغيل (المراجعة، المصادر، الإدارة، حالات التأكيد)
+   تظهر في «وضع الفريق»، ويُفعَّل من أسفل الصفحة أو تلقائيًا عند دخول الإدارة. */
+const TEAM_KEY = "vn-team";
+function isTeam() {
+  try { const v = localStorage.getItem(TEAM_KEY); return v === "1" || (v !== "0" && hasAdminToken()); } catch { return false; }
+}
+function hasAdminToken() { try { return !!(sessionStorage.getItem("vn-admin-token") || localStorage.getItem("vn-admin-token")); } catch { return false; } }
+function setTeam(on) { try { localStorage.setItem(TEAM_KEY, on ? "1" : "0"); } catch {} applyMode(); route(); }
+function applyMode() {
+  const t = isTeam();
+  document.body.classList.toggle("team", t);
+  const b = $("#modeBtn"); if (b) b.textContent = t ? "الخروج من وضع الفريق" : "وضع الفريق";
+}
+
 /* ------------------------------------------------------------ مسودات القرارات (محلية) */
 function drafts() { try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || "[]"); } catch { return []; } }
 function saveDrafts(d) {
   try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d)); } catch { /* التخزين غير متاح */ }
   const n = d.length, el = $("#draftCount");
   el.textContent = fmt(n); el.classList.toggle("hidden", !n);
+  const bar = $("#draftBar");
+  if (bar) {
+    bar.classList.toggle("hidden", !n || !isTeam());
+    bar.innerHTML = `<span>${fmt(n)} قرار مراجعة غير مثبت بعد</span><span class="spacer"></span>${hasAdminToken() ? `<button class="btn sm p" id="barSave">تثبيت القرارات</button>` : `<a class="btn sm p" href="#/review?tab=drafts">عرضها</a>`}`;
+    const b = $("#barSave"); if (b) b.onclick = () => commitDrafts(b);
+  }
 }
 function addDraft(rec) {
   const d = drafts().filter((x) => x.id !== rec.id);
   d.push({ ...rec, at: new Date().toISOString() });
   saveDrafts(d);
-  toast("حُفظ القرار في المسودات — انسخه من صفحة المراجعة");
+  toast(hasAdminToken() ? "حُفظ القرار — ثبّته بزر «تثبيت القرارات» أسفل الشاشة" : "حُفظ القرار في المسودات — ثبّته من صفحة المراجعة");
   route();
 }
 function draftFor(id) { return drafts().find((d) => d.id === id); }
@@ -75,9 +96,10 @@ function trim(s, n) { s = s || ""; return s.length > n ? s.slice(0, n - 1) + "�
 
 function newsItem(a, opts = {}) {
   const d = draftFor(a.id);
-  const showReasons = a.st === "review" || a.st === "uncertain";
+  const team = isTeam();
+  const showReasons = team && (a.st === "review" || a.st === "uncertain");
   const reasons = showReasons ? (a.r || []).filter((r) => r !== "priority_only").map((r) => `<span class="chip r">${esc(S.meta.reasonLabels[r] || r)}</span>`).join("") : "";
-  const acts = opts.actions && (a.st === "review" || a.st === "uncertain") ? `
+  const acts = team && opts.actions && (a.st === "review" || a.st === "uncertain") ? `
     <div class="acts noprint">
       ${a.p.length ? `<button class="btn sm ok" data-act="confirm" data-id="${a.id}">✓ تأكيد</button>` : ""}
       <button class="btn sm" data-act="assign" data-id="${a.id}">تعديل الربط</button>
@@ -86,7 +108,7 @@ function newsItem(a, opts = {}) {
     </div>` : "";
   return `<li>
     <a class="h" dir="auto" href="${esc(a.u)}" target="_blank" rel="noopener">${esc(a.t)}</a>
-    <div class="m">${opts.noType ? "" : typeChip(a.ty)}<span>${esc(a.pub || srcName(a.s))}</span><span>${dateAr(a.d)}</span>${a.st !== "auto" && a.st !== "confirmed" ? `<span class="st ${a.st}">${STATUS[a.st]}</span>` : ""}</div>
+    <div class="m">${opts.noType ? "" : typeChip(a.ty)}<span>${esc(a.pub || srcName(a.s))}</span><span>${dateAr(a.d)}</span>${team && a.st !== "auto" && a.st !== "confirmed" ? `<span class="st ${a.st}">${STATUS[a.st]}</span>` : ""}</div>
     ${opts.compact || opts.noP ? "" : `<div class="pchips">${chipsP(a.p)}</div>`}
     ${a.x && opts.excerpt !== false && !opts.compact && !a.x.startsWith(a.t.slice(0, 40)) ? `<div class="x" dir="auto">${esc(trim(a.x, 200))}</div>` : ""}
     ${a.ai && showReasons ? `<div class="ai">🤖 ${esc(a.ai)} <span class="muted">(ثقة ${Math.round((a.ac || 0) * 100)}%)</span></div>` : ""}
@@ -144,11 +166,16 @@ function digestHTML(dg, opts = {}) {
     const refs = (b.refs || []).map(byId).filter(Boolean);
     const t = b.type ? S.meta.types[b.type] : null;
     return `<li>${t ? `<span class="dg-ic" title="${esc(t.label)}">${t.icon}</span>` : `<span class="dg-ic">•</span>`}<div><span dir="auto" class="dg-t">${esc(b.text)}</span>${refs.length ? `<span class="refs">${[...new Map(refs.map((a) => [a.pub || srcName(a.s), a])).values()].slice(0, 4).map((a) => `<a href="${esc(a.u)}" target="_blank" rel="noopener">${esc(a.pub || srcName(a.s))}</a>`).join(" · ")}</span>` : ""}</div></li>`;
-  }).join("")}</ul>${opts.note !== false ? `<p class="dg-src">${dg.source === "ai" ? "صياغة تحريرية بالذكاء الاصطناعي من الأخبار المرفقة" : "مستخلصة آليًا من عناوين الأخبار، وتُصاغ تحريريًا عند تفعيل الذكاء الاصطناعي"}</p>` : ""}`;
+  }).join("")}</ul>${opts.note !== false && isTeam() ? `<p class="dg-src">${dg.source === "ai" ? "صياغة تحريرية بالذكاء الاصطناعي من الأخبار المرفقة" : "مستخلصة آليًا من عناوين الأخبار، وتُصاغ تحريريًا عند تفعيل الذكاء الاصطناعي"}</p>` : ""}`;
 }
 
 const SUBST = new Set(["decree", "decision", "agreement", "international", "figures"]);
 const counted = (a) => a.st === "auto" || a.st === "confirmed";
+/* قائمة طويلة: أول n ظاهرة والبقية مطوية حتى لا تطول الصفحة على الجوال */
+function foldList(list, item, n = 5) {
+  const head = list.slice(0, n).map(item).join(""), rest = list.slice(n);
+  return `<ul class="news">${head}</ul>${rest.length ? `<details class="more"><summary>عرض ${fmt(rest.length)} خبرًا آخر</summary><ul class="news">${rest.map(item).join("")}</ul></details>` : ""}`;
+}
 function weekRange() { const r = S.meta.digestPeriods[0]; return r ? [S.reports[r.id]?.start, S.reports[r.id]?.end] : [null, null]; }
 function chg(v) { if (v == null) return `<span class="muted">—</span>`; return `<span class="${v >= 0 ? "up" : "down"}">${v >= 0 ? "▲" : "▼"} ${fmt(Math.abs(v))}%</span>`; }
 
@@ -164,7 +191,10 @@ async function viewHome() {
   const agrW = cnt(wk, (a) => a.ty === "agreement"), agrL = cnt(wkl, (a) => a.ty === "agreement");
   const topP = r ? r.priorities.slice().sort((a, b) => b.count - a.count)[0] : null;
   const diff = (a, b) => (b ? `<span class="${a >= b ? "up" : "down"}">${a >= b ? "+" : "−"}${fmt(Math.abs(a - b))}</span> عن الأسبوع الماضي` : `الأسبوع الماضي ${fmt(b)}`);
-  const legis = S.articles.filter((a) => counted(a) && (a.ty === "decree" || a.ty === "decision")).slice(0, 5);
+  // أحدث التشريعات دون تكرار: التغطية الإنجليزية لمرسوم له تغطية عربية في اليوم نفسه لا تتكرر
+  const legAll = S.articles.filter((a) => counted(a) && (a.ty === "decree" || a.ty === "decision"));
+  const near = (a, b) => Math.abs(new Date(a.d) - new Date(b.d)) <= 864e5;
+  const legis = legAll.filter((a) => a.lang === "ar" || !legAll.some((b) => b.lang === "ar" && b.ty === a.ty && near(a, b))).slice(0, 5);
   const pCard = (c, ax) => {
     const pr = r?.priorities.find((x) => x.code === c);
     const st = A.priorities[c];
@@ -172,7 +202,7 @@ async function viewHome() {
     return `<a class="ptile" href="#/p/${c}" style="--ax:${AX_COLORS[ax.id]}">
       <div class="pt-top"><span class="pt-code">${c}</span><span class="pt-n">${fmt(pr?.count || 0)}<small>هذا الأسبوع</small></span></div>
       <div class="pt-name">${esc(P(c).nameAr)}</div>
-      <div class="pt-meta"><span>حصة الحراك ${fmt(st.share)}%</span><span>جوهري ${fmt(Math.round(st.subRatio * 100))}%</span></div>
+      <div class="pt-meta"><span>النصيب ${fmt(st.share)}%</span><span>ذات وزن ${fmt(Math.round(st.subRatio * 100))}%</span></div>
       <div class="pt-bar"><i style="width:${Math.min(100, st.share * 3)}%"></i></div>
       <div class="pt-head" dir="auto">${head ? esc(trim(head.title, 90)) : `<span class="muted">لا أخبار هذا الأسبوع</span>`}</div></a>`;
   };
@@ -191,9 +221,9 @@ async function viewHome() {
       <ul class="news slim">${legis.map((a) => newsItem(a, { compact: true })).join("") || `<li class="muted">لا يوجد بعد.</li>`}</ul></div>
   </div>
   ${m.axes.map((ax) => { const st = A.axes[ax.id]; return `<section class="axis-sec" style="--ax:${AX_COLORS[ax.id]}">
-    <div class="axis-h"><h2>المحور ${ax.number}: ${esc(ax.nameAr)}</h2><span class="muted">حصته من حراك الربع ${fmt(st.share)}% · ${fmt(st.events)} حدثًا منها ${fmt(st.substantive)} جوهريًا</span></div>
+    <div class="axis-h"><h2>المحور ${ax.number}: ${esc(ax.nameAr)}</h2><span class="muted">نصيبه من أخبار الرؤية آخر 13 أسبوعًا ${fmt(st.share)}% · ${fmt(st.events)} حدثًا منها ${fmt(st.substantive)} ذات وزن</span></div>
     <div class="ptiles">${ax.priorities.map((c) => pCard(c, ax)).join("")}</div></section>`; }).join("")}
-  <p class="note" style="margin-top:16px">«حصة الحراك» و«جوهري» محسوبتان على آخر 13 أسبوعًا — التفاصيل والمنهجية في <a href="#/analysis">تحليل الحراك</a>.</p>`;
+  <p class="note" style="margin-top:16px"><b>كيف تُقرأ الأرقام:</b> «النصيب» حصة الأولوية من مجموع أخبار الرؤية، و«ذات وزن» نسبة المراسيم والقرارات والاتفاقيات والأرقام والتقييمات الدولية من أخبارها، وكلاهما على آخر 13 أسبوعًا. الأرقام تقيس حجم ما نُشر، لا إنجاز الأولوية ولا أداء مؤشراتها. التفاصيل في <a href="#/analysis">تحليل الحراك</a>.</p>`;
 }
 
 /* --- صفحة الأولوية */
@@ -214,26 +244,28 @@ async function viewPriority(code) {
   return `<div class="crumb"><a href="#/">الرئيسية</a> ← <a href="#/taxonomy">الأولويات</a> ← المحور ${ax.number}</div>
   <section class="hero" style="--ax:${AX_COLORS[ax.id]}"><div><h1>${code} — ${esc(p.nameAr)}</h1><p>محور ${esc(ax.nameAr)} · رابط هذه الصفحة ثابت ويمكن مشاركته مع مختص الأولوية</p></div></section>
   <div class="grid g4 kpis">
-    <div class="kpi c1"><div class="l">أخبار الفترة</div><div class="v">${fmt(inPer.length)}</div><div class="d">الفترة السابقة ${fmt(pr?.prev || 0)}</div></div>
-    <div class="kpi c2"><div class="l">حصة الحراك (13 أسبوعًا)</div><div class="v">${fmt(st.share)}%</div><div class="d">${fmt(st.events)} حدثًا</div></div>
-    <div class="kpi c3"><div class="l">نسبة الجوهري</div><div class="v">${fmt(Math.round(st.subRatio * 100))}%</div><div class="d">مراسيم وقرارات واتفاقيات وأرقام</div></div>
-    <div class="kpi c4"><div class="l">اتجاه آخر 4 أسابيع</div><div class="v">${chg(st.change4)}</div><div class="d">مقابل الأربعة قبلها</div></div>
+    <div class="kpi c1"><div class="l">أخبار ${esc(perObj?.name || "الفترة")}</div><div class="v">${fmt(inPer.length)}</div><div class="d">الفترة السابقة ${fmt(pr?.prev || 0)}</div></div>
+    <div class="kpi c2"><div class="l">نصيبها من أخبار الرؤية</div><div class="v">${fmt(st.share)}%</div><div class="d">آخر 13 أسبوعًا · ${fmt(st.events)} حدثًا</div></div>
+    <div class="kpi c3"><div class="l">أخبار ذات وزن</div><div class="v">${fmt(Math.round(st.subRatio * 100))}%</div><div class="d">مراسيم، قرارات، اتفاقيات، أرقام</div></div>
+    <div class="kpi c4"><div class="l">التغير في آخر 4 أسابيع</div><div class="v">${chg(st.change4)}</div><div class="d">مقارنة بالأربعة السابقة</div></div>
   </div>
+  <p class="note readme">الأرقام تقيس حجم ما نُشر عن الأولوية، لا إنجازها ولا أداء مؤشراتها. ارتفاعها يعني حراكًا إعلاميًا أكثر.</p>
   <div class="tabs" style="margin-top:16px">${S.meta.digestPeriods.map((d) => `<button class="${d.id === perObj?.id ? "on" : ""}" onclick="location.hash='#/p/${code}?per=${d.id}'">${esc(d.name)}</button>`).join("")}</div>
   <div class="grid g32">
     <div class="card"><h2>الخلاصة — ${esc(perObj?.label || "")}</h2>${digestHTML(pr?.digest)}</div>
-    <div class="card"><h2>المؤشرات والحراك حولها</h2><p class="muted" style="font-size:12.5px;margin-top:-6px">آخر 13 أسبوعًا: الأحداث (منها الجوهرية)</p>
+    <div class="card"><h2>المؤشرات والحراك حولها</h2><p class="muted" style="font-size:12.5px;margin-top:-6px">آخر 13 أسبوعًا: الأحداث (منها ذات الوزن)</p>
       <table class="mini">${inds.map((i) => { const s = S.analysis.indicators[i.code]; return `<tr class="ind-row" data-go="#/news?i=${i.code}"><td>${i.code}</td><td>${esc(i.nameAr)}</td><td class="n">${fmt(s.events)}${s.substantive ? ` <b class="up">(${fmt(s.substantive)})</b>` : ""}</td></tr>`; }).join("")}</table></div>
   </div>
-  ${pending.length ? `<div class="note" style="margin-top:12px">⏳ ${fmt(pending.length)} خبرًا لهذه الأولوية بانتظار التأكيد — <a href="#/news?st=review&p=${code}">راجعها</a></div>` : ""}
-  ${groups.map(([ty, list]) => `<div class="card" style="margin-top:14px"><h3>${S.meta.types[ty].icon} ${esc(ty === "other" ? "أخبار أخرى" : S.meta.types[ty].label)} <span class="muted">(${fmt(list.length)})</span></h3>
-     <ul class="news">${list.map((a) => newsItem(a, { actions: true, noType: true, noP: a.p.length === 1 })).join("")}</ul></div>`).join("")}`;
+  ${pending.length && isTeam() ? `<div class="note" style="margin-top:12px">⏳ ${fmt(pending.length)} خبرًا لهذه الأولوية بانتظار التأكيد — <a href="#/news?st=review&p=${code}">راجعها</a></div>` : ""}
+  ${groups.length ? `<h2 style="margin:22px 0 4px">أخبار ${esc(perObj?.name || "الفترة")} حسب النوع</h2>` : ""}
+  ${groups.map(([ty, list]) => `<div class="card" style="margin-top:12px"><h3>${S.meta.types[ty].icon} ${esc(ty === "other" ? "أخبار أخرى" : S.meta.types[ty].label)} <span class="muted">(${fmt(list.length)})</span></h3>
+     ${foldList(list, (a) => newsItem(a, { actions: true, noType: true, noP: a.p.length === 1, excerpt: false }), SUBST.has(ty) ? 6 : 4)}</div>`).join("")}`;
 }
 
 /* --- المراسيم والقرارات */
 function viewLegislation(q) {
   const ty = q.get("ty") || "";
-  const list = S.articles.filter((a) => (counted(a) || a.st === "review") && (ty ? a.ty === ty : a.ty === "decree" || a.ty === "decision"));
+  const list = S.articles.filter((a) => (counted(a) || (isTeam() && a.st === "review")) && (ty ? a.ty === ty : a.ty === "decree" || a.ty === "decision"));
   const n = +(q.get("n") || 60);
   return `<section class="hero"><div><h1>📜 المراسيم والقرارات</h1><p>المراسيم السلطانية والقرارات واللوائح ذات الصلة بالرؤية، من المصادر الرسمية والصحف ومنها قانون عُمان</p></div></section>
   <div class="tabs"><button class="${!ty ? "on" : ""}" onclick="location.hash='#/legislation'">الكل</button><button class="${ty === "decree" ? "on" : ""}" onclick="location.hash='#/legislation?ty=decree'">مراسيم سلطانية</button><button class="${ty === "decision" ? "on" : ""}" onclick="location.hash='#/legislation?ty=decision'">قرارات ولوائح</button></div>
@@ -244,7 +276,7 @@ function viewLegislation(q) {
 /* --- الأولويات: الهيكل */
 function viewTaxonomy() {
   const m = S.meta, A = S.analysis;
-  return `<section class="hero"><div><h1>المحاور والأولويات والمؤشرات</h1><p>4 محاور ← 12 أولوية ← 38 مؤشرًا (القائمة المحدثة). الأرقام: أحداث آخر 13 أسبوعًا، وبين قوسين الجوهرية منها.</p></div></section>
+  return `<section class="hero"><div><h1>المحاور والأولويات والمؤشرات</h1><p>4 محاور ← 12 أولوية ← 38 مؤشرًا (القائمة المحدثة). الأرقام: أحداث آخر 13 أسبوعًا، وبين قوسين ذات الوزن منها (مراسيم، قرارات، اتفاقيات، أرقام، تقييمات دولية).</p></div></section>
   ${m.axes.map((ax) => `<section class="axis-sec" style="--ax:${AX_COLORS[ax.id]}"><div class="axis-h"><h2>المحور ${ax.number}: ${esc(ax.nameAr)}</h2></div>
     <div class="grid g2">${ax.priorities.map((c) => { const st = A.priorities[c]; return `<div class="card pcard">
       <a class="pc-h" href="#/p/${c}"><span class="pt-code">${c}</span> ${esc(P(c).nameAr)}<span class="spacer"></span><b>${fmt(st.events)}</b> <span class="muted">(${fmt(st.substantive)})</span></a>
@@ -270,21 +302,22 @@ function viewAnalysis() {
   const noAction = gaps.filter((i) => A.indicators[i.code].events > 0);
   const inds = Object.entries(A.indicators).filter(([, s]) => s.events).sort((a, b) => b[1].weight - a[1].weight).slice(0, 12);
   return `<section class="hero"><div><h1>تحليل الحراك</h1><p>أين يتركز الحراك الإخباري للرؤية، وما نوعيته، وكيف يتغير — آخر 13 أسبوعًا (${dateAr(W.start)} – ${dateAr(W.end)})</p></div></section>
+  <p class="note readme">هذه الصفحة تقيس الحراك الإعلامي: كم نُشر عن كل أولوية ومن أي نوع. ارتفاع الرقم يعني حراكًا أكثر، لا إنجازًا أكبر، وانخفاضه لا يعني غياب العمل.</p>
   <div class="grid g4 kpis">
     <div class="kpi c1"><div class="l">أحداث الربع</div><div class="v">${fmt(A.totals.events)}</div><div class="d">من ${fmt(A.totals.articles)} خبرًا بعد دمج التغطيات المكررة</div></div>
-    <div class="kpi c2"><div class="l">أحداث جوهرية</div><div class="v">${fmt(A.totals.substantive)}</div><div class="d">${fmt(Math.round((100 * A.totals.substantive) / Math.max(1, A.totals.events)))}% من الحراك</div></div>
+    <div class="kpi c2"><div class="l">أحداث ذات وزن</div><div class="v">${fmt(A.totals.substantive)}</div><div class="d">${fmt(Math.round((100 * A.totals.substantive) / Math.max(1, A.totals.events)))}% من الحراك</div></div>
     <div class="kpi c3"><div class="l">مراسيم وقرارات</div><div class="v">${fmt((A.totals.types.decree || 0) + (A.totals.types.decision || 0))}</div><div class="d">اتفاقيات ${fmt(A.totals.types.agreement || 0)}</div></div>
-    <div class="kpi c4"><div class="l">مؤشرات بلا إجراء جوهري</div><div class="v">${fmt(A.gaps.length)} <small>من 38</small></div><div class="d"><a href="#gaps">عرض الفجوات</a></div></div>
+    <div class="kpi c4"><div class="l">مؤشرات بلا إجراء ذي وزن</div><div class="v">${fmt(A.gaps.length)} <small>من 38</small></div><div class="d"><a href="#gaps">عرض الفجوات</a></div></div>
   </div>
-  <div class="grid g4" style="margin-top:16px">${m.axes.map((ax) => { const s = A.axes[ax.id]; return `<div class="card axcard" style="--ax:${AX_COLORS[ax.id]}"><div class="l">${esc(ax.nameAr)}</div><div class="v">${fmt(s.share)}%</div><div class="d">${fmt(s.events)} حدثًا · جوهري ${fmt(Math.round(s.subRatio * 100))}% · ${chg(s.change4)}</div></div>`; }).join("")}</div>
+  <div class="grid g4 kpis" style="margin-top:16px">${m.axes.map((ax) => { const s = A.axes[ax.id]; return `<div class="card axcard" style="--ax:${AX_COLORS[ax.id]}"><div class="l">${esc(ax.nameAr)}</div><div class="v">${fmt(s.share)}%</div><div class="d">${fmt(s.events)} حدثًا · ذات وزن ${fmt(Math.round(s.subRatio * 100))}% · ${chg(s.change4)}</div></div>`; }).join("")}</div>
 
   <div class="card" style="margin-top:16px"><h2>الأولويات: حجم الحراك ونوعيته</h2>
-    <p class="muted" style="font-size:13px">طول الشريط = وزن الحراك؛ ألوانه = توزيع الأحداث حسب النوع. «جوهري» = مراسيم وقرارات واتفاقيات وتقييمات دولية وأرقام. الاتجاه = آخر 4 أسابيع مكتملة مقابل الأربعة قبلها.</p>
+    <p class="muted" style="font-size:13px">طول الشريط = وزن الحراك؛ ألوانه = توزيع الأحداث حسب النوع. «ذات وزن» = مراسيم وقرارات واتفاقيات وتقييمات دولية وأرقام. التغير = آخر 4 أسابيع مكتملة مقابل الأربعة قبلها. على الجوال يظهر الجدول مختصرًا؛ اسحبه أفقيًا إن لزم.</p>
     <div class="legend" style="margin-bottom:10px">${typesOrder.map((t) => `<span><i style="background:${typeColor[t]}"></i>${esc(A.typeLabels[t])}</span>`).join("")}</div>
-    <table class="prio"><thead><tr><th>الأولوية</th><th style="width:40%">الحراك ونوعيته</th><th class="n">الحصة</th><th class="n">الأحداث</th><th class="n">جوهري</th><th class="n">الاتجاه</th></tr></thead><tbody>
+    <div class="tscroll"><table class="prio"><thead><tr><th>الأولوية</th><th class="hide-m" style="width:40%">الحراك ونوعيته</th><th class="n">النصيب</th><th class="n">الأحداث</th><th class="n">ذات وزن</th><th class="n">التغير</th></tr></thead><tbody>
     ${prs.map(([c, s]) => `<tr class="ind-row" data-go="#/p/${c}"><td><span class="pt-code" style="--ax:${AX_COLORS[A.axisOf[c]]}">${c}</span> ${esc(P(c).nameAr)}</td>
-      <td><div class="stk" style="width:${Math.max(4, (100 * s.weight) / maxW)}%">${stack(s)}</div></td><td class="n">${fmt(s.share)}%</td><td class="n">${fmt(s.events)}</td><td class="n">${fmt(Math.round(s.subRatio * 100))}%</td><td class="n">${chg(s.change4)}</td></tr>`).join("")}
-    </tbody></table></div>
+      <td class="hide-m"><div class="stk" style="width:${Math.max(4, (100 * s.weight) / maxW)}%">${stack(s)}</div></td><td class="n">${fmt(s.share)}%</td><td class="n">${fmt(s.events)}</td><td class="n">${fmt(Math.round(s.subRatio * 100))}%</td><td class="n">${chg(s.change4)}</td></tr>`).join("")}
+    </tbody></table></div></div>
 
   <div class="card" style="margin-top:16px"><h2>خريطة الحراك الأسبوعية</h2><p class="muted" style="font-size:13px">وزن حراك كل أولوية في كل أسبوع؛ اللون الأغمق = حراك أكبر. يكشف متى تحركت كل أولوية ومتى صمتت.</p>
     ${heat(W.weeks, m.axes.flatMap((ax) => ax.priorities.map((c) => ({ code: c, name: P(c).nameAr, color: AX_COLORS[ax.id].replace("var(", "var(").replace(")", ")"), vals: A.priorities[c].series }))))}</div>
@@ -295,7 +328,7 @@ function viewAnalysis() {
       <table class="mini">${A.cross.slice(0, 10).map((x) => `<tr><td>${esc(P(x.a).nameAr)}</td><td class="muted">↔</td><td>${esc(P(x.b).nameAr)}</td><td class="n">${fmt(x.events)}</td></tr>`).join("") || `<tr><td class="muted">لا يوجد</td></tr>`}</table></div>
   </div>
 
-  <div class="card" style="margin-top:16px" id="gaps"><h2>الفجوات: مؤشرات بلا إجراء جوهري خلال 13 أسبوعًا</h2>
+  <div class="card" style="margin-top:16px" id="gaps"><h2>الفجوات: مؤشرات بلا إجراء ذي وزن خلال 13 أسبوعًا</h2>
     <p class="muted" style="font-size:13px">لا مرسوم ولا قرار ولا اتفاقية ولا تقييم دولي ولا أرقام مرتبطة بها في الأخبار. الفجوة الإخبارية لا تعني غياب العمل، لكنها سؤال يستحق المتابعة.</p>
     <h3>بلا أي خبر (${fmt(silent.length)})</h3><div>${silent.map((i) => `<span class="chip i">${i.code} ${esc(trim(i.nameAr, 70))}</span>`).join("")}</div>
     <h3 style="margin-top:12px">أخبار عامة أو فعاليات فقط (${fmt(noAction.length)})</h3><div>${noAction.map((i) => `<a class="chip" href="#/news?i=${i.code}">${i.code} ${esc(trim(i.nameAr, 70))} (${fmt(A.indicators[i.code].events)})</a>`).join("")}</div></div>
@@ -328,7 +361,7 @@ async function viewNews(q) {
   const html = `<h1>الأخبار</h1><p class="sub">${fmt(res.length)} خبرًا مطابقًا${f.i ? ` — المؤشر: ${esc(I(f.i)?.nameAr)}` : ""}${f.p && !f.i ? ` — الأولوية: ${esc(P(f.p)?.nameAr)}` : ""}</p>
   <div class="filters card flat">
     <input id="fq" placeholder="بحث في العناوين والمقتطفات…" value="${esc(f.q)}">
-    <select id="fst">${opt("counted", "المحتسبة", st)}${opt("review", "بانتظار التأكيد", st)}${opt("uncertain", "المحتملة", st)}${opt("all", "الكل", st)}</select>
+    ${isTeam() ? `<select id="fst">${opt("counted", "المحتسبة", st)}${opt("review", "بانتظار التأكيد", st)}${opt("uncertain", "المحتملة", st)}${opt("all", "الكل", st)}</select>` : ""}
     <select id="fax">${opt("", "كل المحاور", f.ax)}${S.meta.axes.map((a) => opt(a.id, a.nameAr, f.ax)).join("")}</select>
     <select id="fp">${opt("", "كل الأولويات", f.p)}${S.meta.priorities.map((p) => opt(p.code, `${p.code} ${p.nameAr}`, f.p)).join("")}</select>
     <select id="fi">${opt("", "كل المؤشرات", f.i)}${inds.map((i) => opt(i.code, `${i.code} ${trim(i.nameAr, 60)}`, f.i)).join("")}</select>
@@ -341,7 +374,7 @@ async function viewNews(q) {
   setTimeout(() => {
     const set = (k, v) => { const p = new URLSearchParams(q); v ? p.set(k, v) : p.delete(k); if (k === "p") p.delete("i"); p.delete("n"); location.hash = "#/news?" + p.toString(); };
     $("#fq").addEventListener("change", (e) => set("q", e.target.value));
-    $("#fst").onchange = (e) => set("st", e.target.value === "counted" ? "" : e.target.value);
+    if ($("#fst")) $("#fst").onchange = (e) => set("st", e.target.value === "counted" ? "" : e.target.value);
     $("#fax").onchange = (e) => set("ax", e.target.value);
     $("#fp").onchange = (e) => set("p", e.target.value);
     $("#fi").onchange = (e) => set("i", e.target.value);
@@ -378,8 +411,8 @@ async function viewReport(id) {
   return `<div class="row noprint"><a href="#/reports">→ كل التقارير</a><span class="spacer"></span><a class="btn p" id="pdf" href="data/reports/${esc(id)}.pdf?v=${encodeURIComponent(S.meta.builtAt)}" download="${esc("حراك-الرؤية-" + r.label)}.pdf" target="_blank" rel="noopener">تنزيل PDF</a><button class="btn" id="print">طباعة</button></div>
   <div class="card rep" style="margin-top:10px">
     <h1>حراك أخبار رؤية عُمان 2040 — التقرير ${kind}</h1><p class="sub">${esc(r.label)}${r.partial ? " — حتى الآن" : ""}</p>
-    <div class="grid g3"><div class="kpi"><div class="l">أخبار مرتبطة بالرؤية</div><div class="v">${fmt(r.total)}</div><div class="d">السابقة ${fmt(r.prevTotal)} ${ch(r.total, r.prevTotal)}</div></div>
-      <div class="kpi"><div class="l">بانتظار تأكيد الفريق</div><div class="v">${fmt(r.awaiting)}</div></div>
+    <div class="grid g3 kpis"><div class="kpi"><div class="l">أخبار مرتبطة بالرؤية</div><div class="v">${fmt(r.total)}</div><div class="d">السابقة ${fmt(r.prevTotal)} ${ch(r.total, r.prevTotal)}</div></div>
+      <div class="kpi"><div class="l">مراسيم وقرارات</div><div class="v">${fmt((r.types.decree || 0) + (r.types.decision || 0))}</div><div class="d">اتفاقيات ومذكرات ${fmt(r.types.agreement || 0)}</div></div>
       <div class="kpi"><div class="l">أولويات بلا أخبار</div><div class="v">${fmt(r.silentPriorities.length)}</div></div></div>
     <h2>الخلاصة</h2>${digestHTML(r.digest)}
     ${r.highlights.length ? `<h2>أرقام الحراك</h2><ul class="hl">${r.highlights.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>` : ""}
@@ -392,7 +425,7 @@ async function viewReport(id) {
       <details><summary class="muted" style="font-size:13px;cursor:pointer">المصادر (${fmt(p.headlines.length)})</summary><ul>${p.headlines.map((h) => `<li><a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.title)}</a> <span class="muted" style="font-size:12px">— ${esc(srcName(h.source))}، ${dateAr(h.date)}</span></li>`).join("")}</ul></details></div>`).join("")}
     ${r.silentPriorities.length ? `<h2>أولويات بلا أخبار</h2><p>${r.silentPriorities.map((c) => esc(P(c).nameAr)).join("، ")}</p>` : ""}
     <h2>المصادر</h2><p>${r.sources.map((s) => `${esc(s.nameAr)} (${fmt(s.count)})`).join("، ") || "—"}</p>
-    <p class="note">رصد إخباري لما نُشر عن أولويات رؤية عُمان 2040، مصنَّف وفق قواعد موثقة (الإصدار ${esc(S.meta.rulesVersion)}). الخلاصة مستخلصة من الأخبار المرفقة روابطها.</p>
+    <p class="note">رصد إخباري لما نُشر عن أولويات رؤية عُمان 2040، مصنَّف وفق قواعد موثقة (الإصدار ${esc(S.meta.rulesVersion)}). الخلاصة مستخلصة من الأخبار المرفقة روابطها. الأرقام تقيس حجم ما نُشر من أخبار، لا إنجاز الأولويات ولا أداء مؤشراتها.</p>
   </div>`;
 }
 
@@ -404,7 +437,15 @@ async function viewReview(q) {
   if (tab === "review" || tab === "uncertain") {
     const list = tab === "review" ? S.articles.filter((a) => a.st === "review") : await loadUncertain();
     const n = +(q.get("n") || 50);
+    const shown = list.slice(0, n).filter((a) => a.p.length && !draftFor(a.id));
+    setTimeout(() => { const b = $("#bulkOk"); if (b) b.onclick = () => {
+      if (!confirm(`تأكيد ${shown.length} خبرًا كما ربطتها القواعد؟ راجع العناوين قبل ذلك؛ يمكنك حذف أي قرار من «قراراتي».`)) return;
+      const d = drafts().filter((x) => !shown.some((a) => a.id === x.id));
+      shown.forEach((a) => d.push({ id: a.id, decision: "تأكيد", p: "", i: "", title: a.t, at: new Date().toISOString() }));
+      saveDrafts(d); toast(`أُضيف ${fmt(shown.length)} تأكيدًا إلى القرارات`); route();
+    }; });
     body = `<p class="note">${tab === "review" ? "أخبار ربطتها القواعد بأولوية لكن فيها ما يستدعي نظرة بشرية (السبب ظاهر تحت كل خبر). لا تُحتسب في التقارير حتى تُؤكَّد." : "أخبار عُمانية فيها إشارة لموضوع من مواضيع الرؤية لكن دون حد الإثبات. إن فُعّل الذكاء الاصطناعي يحسم أغلبها تلقائيًا؛ وإلا يمكن تأكيد المهم منها هنا."}</p>
+      ${shown.length ? `<div class="row" style="margin-top:12px"><button class="btn sm ok" id="bulkOk">✓ تأكيد كل الظاهر (${fmt(shown.length)})</button><span class="muted" style="font-size:12.5px">ثم استبعد ما لا يخص الرؤية بزر ✗</span></div>` : ""}
       <div class="card" style="margin-top:12px"><ul class="news">${list.slice(0, n).map((a) => newsItem(a, { actions: true })).join("") || `<li class="muted">لا يوجد.</li>`}</ul>
       ${list.length > n ? `<div class="row" style="justify-content:center"><a class="btn" href="#/review?tab=${tab}&n=${n + 100}">عرض المزيد</a></div>` : ""}</div>`;
   } else if (tab === "excluded") {
@@ -417,12 +458,15 @@ async function viewReview(q) {
     const d = drafts();
     const csv = d.map((x) => [x.id, x.decision, x.p || "", x.i || "", "", (x.note || "").replace(/[,\n]/g, " ")].join(",")).join("\n");
     body = `<div class="card"><h2>القرارات المحفوظة على هذا الجهاز</h2>
+      ${hasAdminToken() ? `<div class="row" style="margin-bottom:12px"><button class="btn p" id="commitNow" ${d.length ? "" : "disabled"}>تثبيت ${fmt(d.length)} قرارًا في المستودع الآن</button></div>` : `<p class="note">الأسهل: سجّل الدخول من <a href="#/admin">الإدارة</a> مرة واحدة، فيظهر زر يثبّت القرارات بضغطة.</p>`}
+      <details${hasAdminToken() ? "" : " open"}><summary class="muted" style="cursor:pointer">الطريقة اليدوية</summary>
       <p>لتثبيت القرارات: انسخ الأسطر، ثم افتح الملف <b>data/decisions.csv</b> في GitHub ← أيقونة القلم ✏️ ← الصق في آخر الملف ← Commit changes. بعد دقائق يُعاد البناء وتظهر القرارات في التقارير.</p>
       <p class="muted" style="font-size:13px">اكتب اسمك في العمود الخامس (بواسطة) إن رغبت.</p>
       <textarea class="code" id="csvout" readonly>${esc(csv)}</textarea>
-      <div class="row" style="margin-top:10px"><button class="btn p" id="copy" ${d.length ? "" : "disabled"}>نسخ الأسطر</button><button class="btn no" id="clear" ${d.length ? "" : "disabled"}>مسح المسودات</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="copy" ${d.length ? "" : "disabled"}>نسخ الأسطر</button><button class="btn no" id="clear" ${d.length ? "" : "disabled"}>مسح المسودات</button></div></details>
       <table style="margin-top:14px">${d.map((x) => `<tr><td>${esc(x.decision)}</td><td>${esc(x.title)}</td><td>${esc(x.p)} ${esc(x.i)}</td><td><button class="btn sm" data-del="${x.id}">حذف</button></td></tr>`).join("")}</table></div>`;
     setTimeout(() => {
+      $("#commitNow")?.addEventListener("click", (e) => commitDrafts(e.target));
       $("#copy")?.addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#csvout").value); toast("نُسخت الأسطر"); } catch { $("#csvout").select(); document.execCommand("copy"); toast("نُسخت الأسطر"); } });
       $("#clear")?.addEventListener("click", () => { if (confirm("مسح كل المسودات؟ تأكد أنك لصقتها في decisions.csv أولًا.")) { saveDrafts([]); route(); } });
       document.querySelectorAll("[data-del]").forEach((b) => (b.onclick = () => { saveDrafts(drafts().filter((x) => x.id !== b.dataset.del)); route(); }));
@@ -447,7 +491,7 @@ function viewSources() {
   }).join("");
   const lr = m.lastRun;
   return `<h1>المصادر</h1><p class="sub">${lr ? `آخر تشغيل للجمع: ${new Date(lr.at).toLocaleString("ar-OM-u-nu-latn")} — جديد ${fmt(lr.new)}، مرتبط بالرؤية ${fmt(lr.kept)}، مستبعد ${fmt(lr.excluded)}` : "لم يعمل الجمع التلقائي بعد على GitHub."}</p>
-  <div class="card"><table><thead><tr><th>المصدر</th><th>الحالة</th><th class="n">أخبار محتسبة</th><th>آخر خبر مرتبط</th><th class="n">آخر تشغيل: موجود / جديد / مرتبط</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="card tscroll"><table><thead><tr><th>المصدر</th><th>الحالة</th><th class="n">أخبار محتسبة</th><th>آخر خبر مرتبط</th><th class="n">آخر تشغيل: موجود / جديد / مرتبط</th></tr></thead><tbody>${rows}</tbody></table></div>
   <p class="note" style="margin-top:12px">إضافة مصدر أو إيقافه من الملف <b>config/sources.json</b>. لكل مصدر روابط RSS تُجرَّب بالترتيب، ثم قراءة صفحة الأخبار إن فشلت.</p>`;
 }
 
@@ -465,8 +509,14 @@ function viewAbout() {
     <li><b>بانتظار التأكيد:</b> حالات ملتبسة لا تُحتسب حتى يؤكدها الفريق.</li></ol>
   <h2>تحليل الحراك</h2><p>لكل محور وأولوية ومؤشر: عدد الأحداث (بعد دمج التغطيات المكررة)، ووزنها حسب النوع، ونسبة الجوهري منها، واتجاهها. التفاصيل في صفحة <a href="#/analysis">تحليل الحراك</a>.</p>
   <h2>الخلاصة</h2><p>لكل أولوية ولكل فترة: أهم ما حدث في نقاط. بدون ذكاء اصطناعي تُستخلص بتجميع تغطيات الحدث الواحد وترتيبها حسب النوع وعدد المصادر. ومع تفعيله تُصاغ تحريريًا («وقّعت… صدر… ارتفع…») من الأخبار نفسها، مع روابطها.</p>
+  <h2>وضع الفريق</h2><p>المختص يرى الأخبار المعتمدة وخلاصتها فقط. أدوات التشغيل (المراجعة، المصادر، الإدارة، الأخبار بانتظار التأكيد) تظهر بعد تفعيل «وضع الفريق» من أسفل الصفحة، أو تلقائيًا عند الدخول إلى الإدارة.</p>
   <h2>ما يُحفظ</h2><p>العنوان ومقتطف قصير ورابط المصدر والتصنيف. لا يُعاد نشر نص الخبر.</p>
   <p class="muted">إصدار القواعد: ${esc(m.rulesVersion)} · آخر بناء: ${new Date(m.builtAt).toLocaleString("ar-OM-u-nu-latn")}</p></div>`;
+}
+
+function teamGate() {
+  setTimeout(() => { const b = $("#gateOn"); if (b) b.onclick = () => setTeam(true); });
+  return `<div class="card" style="max-width:640px"><h2>صفحة لفريق التشغيل</h2><p>هذه الصفحة لمراجعة التصنيف ومتابعة المصادر، ولا يحتاجها مختص الأولوية.</p><button class="btn p" id="gateOn">فتح وضع الفريق</button></div>`;
 }
 
 /* ------------------------------------------------------------ التوجيه */
@@ -477,10 +527,13 @@ async function route() {
   const [path, qs] = (location.hash.slice(2) || "").split("?");
   const isP = /^p\/P\d\d$/.test(path || "");
   const name = isP ? "taxonomy" : VIEWS[path] ? path : "home";
+  applyMode();
   document.querySelectorAll("#nav a").forEach((a) => a.classList.toggle("on", a.dataset.r === name));
   const app = $("#app");
   try {
-    app.innerHTML = isP ? await viewPriority(path.slice(2)) : await VIEWS[name](new URLSearchParams(qs || ""));
+    app.innerHTML = isP ? await viewPriority(path.slice(2))
+      : (name === "review" || name === "sources") && !isTeam() ? teamGate()
+      : await VIEWS[name](new URLSearchParams(qs || ""));
   } catch (e) {
     app.innerHTML = `<div class="card"><h2>تعذر عرض الصفحة</h2><p class="muted">${esc(e.message)}</p></div>`;
   }
@@ -497,6 +550,8 @@ async function boot() {
   }
   document.title = `${S.meta.siteTitle} — حراك أخبار رؤية عُمان 2040`;
   $("#foot").innerHTML = `آخر تحديث للبيانات: ${new Date(S.meta.builtAt).toLocaleString("ar-OM-u-nu-latn")} · ${fmt(S.meta.totals.counted)} خبرًا محتسبًا · قواعد ${esc(S.meta.rulesVersion)}`;
+  $("#modeBtn").onclick = () => setTeam(!isTeam());
+  applyMode();
   saveDrafts(drafts());
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
   window.addEventListener("beforeprint", () => document.querySelectorAll("details").forEach((d) => (d.open = true)));

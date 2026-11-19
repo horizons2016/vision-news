@@ -167,3 +167,19 @@ def test_newsletter_encrypted_list(repo, monkeypatch):
     monkeypatch.setenv("RECIPIENTS_KEY", "wrong-pass")
     with pytest.raises(SystemExit):  # كلمة سر خاطئة = لا مستلمين = لا إرسال
         newsletter.main(["send", "--week", "2026-11-08", "--force"])
+
+
+def test_foreign_dateline_and_digest():
+    from newstype import rule_digest
+    # خبر عالمي في صحيفة عمانية (مكانه برلين) لا يُعدّ عُمانيًا، وجهة حكومية عُمانية في الخارج تبقى
+    assert classify("COP31: Protesters urge swift climate deal", "Berlin: The UN climate official urged...", True).outcome == "no_oman_context"
+    assert classify("Heritage & Tourism Ministry launches campaign", "Rome: The ministry launched a tourism campaign", True).oman_context == "source"
+    assert classify("Salalah port expands", "Salalah: The port handled more containers", True).oman_context != "none"
+    # دفعة المراسيم بالعربية والإنجليزية في اليوم نفسه = حدث واحد بعنوان عربي جامع
+    arts = [
+        {"id": "1", "t": "Four Royal decrees issued", "d": "2026-11-18", "ty": "decree", "lang": "en", "s": "obs"},
+        {"id": "2", "t": "جلالة السلطان يصدر 4 مراسيم سلطانية", "d": "2026-11-18", "ty": "decree", "lang": "ar", "s": "atheer"},
+        {"id": "3", "t": "مرسوم سلطاني رقم 109 بالتصديق على اتفاقية", "d": "2026-11-19", "ty": "decree", "lang": "ar", "s": "qanoon"},
+    ]
+    d = rule_digest(arts)
+    assert len(d) == 1 and d[0]["text"].startswith("جلالة السلطان يصدر 4 مراسيم") and len(d[0]["refs"]) == 3

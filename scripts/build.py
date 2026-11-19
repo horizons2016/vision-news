@@ -232,7 +232,7 @@ def report_markdown(r: dict, pri: dict) -> str:
     kind = "الأسبوعي" if r["type"] == "week" else "الشهري"
     out = [f"# تقرير حراك رؤية عُمان 2040 {kind}", "", f"**الفترة:** {r['label']}" + (" (حتى الآن)" if r["partial"] else ""), "",
            f"- الأخبار المرتبطة بالرؤية: **{r['total']}** (الفترة السابقة: {r['prevTotal']})",
-           f"- بانتظار تأكيد الفريق: {r['awaiting']}", ""]
+           f"- المراسيم والقرارات: {r['types'].get('decree', 0) + r['types'].get('decision', 0)}", ""]
     if r["digest"]["bullets"]:
         out += ["## الخلاصة: ماذا حدث", ""] + [f"- {TYPES[b['type']]['icon'] + ' ' if b.get('type') else ''}{b['text']}" for b in r["digest"]["bullets"]] + [""]
     if r["highlights"]:

@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 <header class="top">
@@ -31,18 +31,19 @@
     <a href="#/legislation" data-r="legislation">المراسيم والقرارات</a>
     <a href="#/news" data-r="news">كل الأخبار</a>
     <a href="#/reports" data-r="reports">التقارير</a>
-    <a href="#/review" data-r="review">المراجعة <span id="draftCount" class="pill hidden"></span></a>
-    <a href="#/sources" data-r="sources">المصادر</a>
+    <a href="#/review" data-r="review" class="team-only">المراجعة <span id="draftCount" class="pill hidden"></span></a>
+    <a href="#/sources" data-r="sources" class="team-only">المصادر</a>
     <a href="#/about" data-r="about">عن الرصد</a>
-    <a href="#/admin" data-r="admin" class="adm-link" title="إدارة المنصة (للمشرفين)">⚙️ الإدارة</a>
+    <a href="#/admin" data-r="admin" class="adm-link team-only" title="إدارة المنصة (للمشرفين)">⚙️ الإدارة</a>
   </nav>
   <div class="vstripe"></div>
 </header>
 <main id="app"><div class="loading">جارٍ تحميل البيانات…</div></main>
-<footer class="foot" id="foot"></footer>
+<div id="draftBar" class="draftbar hidden noprint"></div>
+<footer class="foot"><span id="foot"></span> · <button class="linkbtn" id="modeBtn" type="button">وضع الفريق</button></footer>
 <div id="toast" class="toast hidden"></div>
 <dialog id="dlg"></dialog>
-<script src="admin.js?v=4" defer></script>
-<script src="app.js?v=4" defer></script>
+<script src="admin.js?v=5" defer></script>
+<script src="app.js?v=5" defer></script>
 </body>
 </html>

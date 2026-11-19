@@ -156,14 +156,34 @@ class Result:
         return any(r in load_rules().blocking for r in self.review_reasons)
 
 
-def oman_context(text: str, title: str, omani_outlet: bool) -> str:
+# مكان الخبر في أول النص (Berlin: / ANTALYA: / Washington (AFP) -). إن كان خارج عُمان فالخبر عالمي
+# حتى لو نشرته صحيفة عمانية في قسم «العالم».
+_DATELINE = re.compile(r"^\s*((?!The\b|THE\b)[A-Z][A-Za-z.'-]+(?: [A-Z][A-Za-z.'-]+){0,2})\s*(?:\((?:AFP|Reuters|AP|ONA|dpa|WAM|SPA|QNA|KUNA|BNA)\))?\s*[:–—-]\s")
+_FOREIGN_PLACES = {p.strip() for p in """berlin, antalya, washington, new york, london, paris, brussels, geneva, moscow, beijing, shanghai, tokyo, delhi, new delhi, mumbai, dhaka, karachi, islamabad, lahore, tehran, dubai, abu dhabi, sharjah, riyadh, jeddah, doha, kuwait, kuwait city, manama, cairo, beirut, gaza, jerusalem, tel aviv, ankara, istanbul, kyiv, kiev, rome, milan, madrid, seoul, singapore, sydney, ottawa, toronto, frankfurt, zurich, vienna, nairobi, johannesburg, baghdad, damascus, amman, sanaa, aden, hong kong, bangkok, jakarta, kuala lumpur, manila, los angeles, san francisco, chicago, mexico city, brasilia, sao paulo, buenos aires, belem, baku, davos, warsaw, stockholm, oslo, copenhagen, helsinki, athens, lisbon, dublin, amsterdam, the hague, munich, hamburg, taipei, hanoi, colombo, kathmandu, kabul, tashkent, almaty, astana, addis ababa, lagos, khartoum, tripoli, tunis, algiers, rabat, casablanca, united nations, dhahran""".split(",")}
+
+
+_GOV = re.compile(r"\b(ministry|ministries|authority|minister|ministerial|sultanate|majlis|vision 2040)\b")
+
+
+def foreign_dateline(raw_content: str) -> bool:
+    m = _DATELINE.match(clean_text(raw_content or "")[:80])
+    if not m:
+        return False
+    place = m.group(1).strip().lower()
+    return place in _FOREIGN_PLACES or _any(normalize(place), load_rules().foreign)
+
+
+def oman_context(text: str, title: str, omani_outlet: bool, foreign_place: bool = False) -> str:
     R = load_rules()
     if _any(text, R.strong_oman):
         return "strong"
     if _any(text, R.weak_oman) and not _any(text, R.jordan):
         return "weak"
-    # سياق المصدر: خبر من صحيفة عمانية يُعدّ عمانيًا ما لم يذكر عنوانه بلدًا أجنبيًا.
-    if omani_outlet and not _any(title, R.foreign):
+    # سياق المصدر: خبر من صحيفة عمانية يُعدّ عمانيًا ما لم يذكر عنوانه بلدًا أجنبيًا أو يبدأ بمكان خارج عُمان.
+    # جهة حكومية في العنوان دون ذكر بلد آخر = جهة عُمانية تشارك في الخارج، فيبقى الخبر عُمانيًا.
+    if foreign_place and _GOV.search(title):
+        foreign_place = False
+    if omani_outlet and not foreign_place and not _any(title, R.foreign):
         return "source"
     return "none"
 
@@ -200,7 +220,7 @@ def classify(raw_title: str, raw_content: str = "", omani_outlet: bool = False) 
     th = R.th
     title = _remove(normalize(clean_text(raw_title)), R.neutralizers)
     body = _remove(normalize(clean_text(raw_content)), R.neutralizers)
-    ctx = oman_context(f"{title} {body}", title, omani_outlet)
+    ctx = oman_context(f"{title} {body}", title, omani_outlet, foreign_dateline(raw_content))
 
     all_ind = _score_indicators(title, body)
     linked = [h for h in all_ind if h["score"] >= th["INDICATOR_MIN_SCORE"]][: th["MAX_INDICATORS_PER_ARTICLE"]]

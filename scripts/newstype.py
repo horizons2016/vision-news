@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 
 from taxonomy.classify import clean_text, contains, normalize
 
@@ -78,8 +79,34 @@ def tokens(title: str) -> set[str]:
     return {w for w in normalize(clean_text(title)).split() if len(w) > 2 and w not in _STOP}
 
 
+# جذور تقريبية (أول 4 أحرف بعد «ال») لمقارنة صيغ مختلفة للحدث نفسه: الأوزبكي/أوزبكستان، توقع/توقيع.
+_GENERIC = {"اتفا", "مذكر", "تفاه", "توقي", "توقع", "يوقع", "وقعت", "برنا", "تعاو", "تعزي", "لتعز", "شراك", "شرا", "مشرو",
+            "افتت", "اطلا", "يدشن", "تدشي", "وزار", "وزير", "هيئه", "شرك", "شركه", "مجلس", "محاف", "جامع", "مركز", "جلال",
+            "سلطا", "الس", "يشهد", "يشهدا", "اقتص", "الاق", "ريال", "مليو", "حكوم", "عام", "جديد", "agre", "sign", "mous",
+            "memo", "coop", "mini", "auth", "comp", "proj", "laun", "boos", "trad", "inve", "deal", "talk", "with"}
+
+
+def stems(title: str) -> set[str]:
+    out = set()
+    for w in tokens(title):
+        if w.startswith("ال") and len(w) > 4:
+            w = w[2:]
+        out.add(w[:4])
+    return out
+
+
+def _days_apart(a: dict, b: dict) -> int:
+    try:
+        return abs((date.fromisoformat(a.get("d", "")[:10]) - date.fromisoformat(b.get("d", "")[:10])).days)
+    except ValueError:
+        return 99
+
+
 def cluster(articles: list[dict]) -> list[list[dict]]:
-    """يجمع الأخبار التي تتحدث عن الحدث نفسه (تشابه كلمات العنوان)."""
+    """يجمع الأخبار التي تتحدث عن الحدث نفسه (تشابه كلمات العنوان).
+
+    المراسيم السلطانية تصدر دفعة واحدة وتغطيها الصحف بالعربية والإنجليزية بعناوين مختلفة،
+    لذلك تُجمع كل أخبار المراسيم الصادرة في اليوم نفسه (±يوم) في حدث واحد."""
     groups: list[tuple[set, list]] = []
     for a in sorted(articles, key=lambda x: x.get("d", "")):
         tk = tokens(a["t"])
@@ -88,6 +115,14 @@ def cluster(articles: list[dict]) -> list[list[dict]]:
             inter = len(tk & g[0])
             union = len(tk | g[0]) or 1
             if inter >= 4 or (inter >= 2 and inter / union >= 0.5):
+                best = g
+                break
+            st, gs = stems(a["t"]), {x for y in g[1] for x in stems(y["t"])}
+            common = st & gs
+            if len(common) >= 3 and common - _GENERIC and any(_days_apart(a, x) <= 2 for x in g[1]):
+                best = g
+                break
+            if a.get("ty") == "decree" and any(x.get("ty") == "decree" and _days_apart(a, x) <= 1 for x in g[1]):
                 best = g
                 break
         if best:
@@ -101,7 +136,9 @@ def cluster(articles: list[dict]) -> list[list[dict]]:
 def rank_group(g: list[dict]) -> float:
     kind = g[0].get("ty", "other")
     sources = len({a["s"] for a in g})
-    return TYPES[kind]["weight"] + 2 * (sources - 1) + (1 if _NUM.search(g[0]["t"]) else 0)
+    arabic = any(a.get("lang") == "ar" for a in g)
+    # الخبر الذي له تغطية عربية يتقدم: القارئ عربي، والعنوان العربي أوضح في الخلاصة
+    return TYPES[kind]["weight"] + 2 * (sources - 1) + (1 if _NUM.search(g[0]["t"]) else 0) + (2 if arabic else 0)
 
 
 def rule_digest(articles: list[dict], limit: int = 6) -> list[dict]:
@@ -113,8 +150,10 @@ def rule_digest(articles: list[dict], limit: int = 6) -> list[dict]:
     groups.sort(key=rank_group, reverse=True)
     out = []
     for g in groups[:limit]:
-        lead = next((a for a in g if a.get("lang") == "ar"), g[0])
         kind = g[0].get("ty", "other")
+        ar = [a for a in g if a.get("lang") == "ar"] or g
+        # في دفعة المراسيم: العنوان الجامع («يصدر 4 مراسيم») أوضح من عنوان مرسوم واحد
+        lead = next((a for a in ar if kind == "decree" and normalize("مراسيم") in normalize(a["t"])), ar[0])
         out.append({"text": lead["t"], "type": kind, "refs": [a["id"] for a in g][:6],
                     "sources": len({a["s"] for a in g})})
     return out

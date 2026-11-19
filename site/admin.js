@@ -36,6 +36,23 @@ async function dispatch(workflow, inputs = {}) {
   await gh(`/repos/${REPO}/actions/workflows/${workflow}/dispatches`, { method: "POST", body: JSON.stringify({ ref: "main", inputs }) });
 }
 
+/* --- تثبيت قرارات المراجعة بضغطة واحدة (من شريط القرارات أو صفحة المراجعة) */
+async function commitDrafts(btn) {
+  const d = drafts(); if (!d.length) return;
+  ADM.token = ADM.token || admToken();
+  if (!ADM.token) { location.hash = "#/admin"; return; }
+  if (btn) btn.disabled = true;
+  try {
+    ADM.user = ADM.user || await gh("/user");
+    const f = await getFile("data/decisions.csv");
+    const name = ADM.user.name || ADM.user.login;
+    const lines = d.map((x) => [x.id, x.decision, x.p || "", x.i || "", name, (x.note || "").replace(/[,\n]/g, " ")].join(","));
+    const text = ((f.text || "معرف الخبر,القرار,الأولوية,المؤشرات,بواسطة,ملاحظة").replace(/\s+$/, "")) + "\n" + lines.join("\n") + "\n";
+    await putFile("data/decisions.csv", text, f.sha, `تثبيت ${d.length} قرار مراجعة — ${ADM.user.login}`);
+    saveDrafts([]); toast(`ثُبّت ${fmt(d.length)} قرارًا — يُعاد البناء خلال دقائق`); route();
+  } catch (e) { toast("تعذر الحفظ: " + e.message); if (btn) btn.disabled = false; }
+}
+
 /* --- التشفير (متوافق مع scripts/recipients.py) */
 const ub64 = (u8) => { let s = ""; u8.forEach((b) => (s += String.fromCharCode(b))); return btoa(s); };
 const b64u = (b) => Uint8Array.from(atob(b), (c) => c.charCodeAt(0));
@@ -76,7 +93,7 @@ async function viewAdmin(q) {
   } catch (e) {
     body = `<div class="card"><p class="down">خطأ: ${esc(e.message)}</p></div>`;
   }
-  setTimeout(() => { const b = $("#admLogout"); if (b) b.onclick = () => { try { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch {} Object.assign(ADM, { token: null, user: null, pass: null, recips: null }); route(); }; });
+  setTimeout(() => { const b = $("#admLogout"); if (b) b.onclick = () => { try { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch {} Object.assign(ADM, { token: null, user: null, pass: null, recips: null }); applyMode(); route(); }; });
   return `<section class="hero"><div><h1>⚙️ إدارة المنصة</h1><p>مرحبًا ${esc(ADM.user.name || ADM.user.login)} — كل تغيير هنا يُحفظ في المستودع باسمك ويمكن الرجوع عنه</p></div></section>
     <div class="row noprint" style="margin-bottom:12px"><div class="tabs" style="margin:0">${tabs.map(([k, l]) => `<button class="${k === tab ? "on" : ""}" onclick="location.hash='#/admin?tab=${k}'">${l}</button>`).join("")}</div><span class="spacer"></span><button class="btn sm" id="admLogout">تسجيل الخروج</button></div>${body}`;
 }
@@ -86,8 +103,8 @@ function adminLogin(err = "") {
     $("#admGo").onclick = () => {
       const t = $("#admTok").value.trim(); if (!t) return;
       ADM.token = t; ADM.user = null;
-      try { ($("#admRemember").checked ? localStorage : sessionStorage).setItem(TOKEN_KEY, t); } catch {}
-      route();
+      try { ($("#admRemember").checked ? localStorage : sessionStorage).setItem(TOKEN_KEY, t); localStorage.setItem("vn-team", "1"); } catch {}
+      applyMode(); route();
     };
   });
   return `<section class="hero"><div><h1>⚙️ إدارة المنصة</h1><p>للمشرفين فقط — الدخول بمفتاح من GitHub</p></div></section>
@@ -230,14 +247,7 @@ async function admDecisions() {
   const existing = (f.text || "").trim().split("\n").length - 1;
   setTimeout(() => {
     const b = $("#admDecSave"); if (!b) return;
-    b.onclick = async () => {
-      const name = ADM.user.name || ADM.user.login;
-      const lines = d.map((x) => [x.id, x.decision, x.p || "", x.i || "", name, (x.note || "").replace(/[,\n]/g, " ")].join(","));
-      const text = ((f.text || "معرف الخبر,القرار,الأولوية,المؤشرات,بواسطة,ملاحظة").replace(/\s+$/, "")) + "\n" + lines.join("\n") + "\n";
-      b.disabled = true;
-      try { await putFile("data/decisions.csv", text, f.sha, `تثبيت ${d.length} قرار مراجعة — ${ADM.user.login}`); saveDrafts([]); toast("ثُبّتت القرارات — يُعاد البناء خلال دقائق"); route(); }
-      catch (e) { toast("تعذر الحفظ: " + e.message); b.disabled = false; }
-    };
+    b.onclick = () => commitDrafts(b);
   });
   return `<div class="card"><h2>قرارات المراجعة</h2>
     <p>القرارات المحفوظة على هذا الجهاز من صفحة «المراجعة»: <b>${fmt(d.length)}</b>. القرارات المثبتة سابقًا في المستودع: ${fmt(Math.max(0, existing))}.</p>

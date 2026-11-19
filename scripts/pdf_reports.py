@@ -100,7 +100,8 @@ def render(r: dict, meta: dict, arts: dict) -> str:
         '<div class="kpis">'
         f'<div class="kpi"><div class="l">أخبار مرتبطة بالرؤية</div><div class="v">{fmt(r["total"])}</div>'
         f'<div class="d">السابقة {fmt(r["prevTotal"])} {change(r["total"], r["prevTotal"])}</div></div>'
-        f'<div class="kpi"><div class="l">بانتظار تأكيد الفريق</div><div class="v">{fmt(r["awaiting"])}</div></div>'
+        f'<div class="kpi"><div class="l">مراسيم وقرارات</div><div class="v">{fmt(r["types"].get("decree", 0) + r["types"].get("decision", 0))}</div>'
+        f'<div class="d">اتفاقيات ومذكرات {fmt(r["types"].get("agreement", 0))}</div></div>'
         f'<div class="kpi"><div class="l">أولويات بلا أخبار</div><div class="v">{fmt(len(r["silentPriorities"]))}</div></div></div>',
         "<h2>الخلاصة</h2>", digest(r.get("digest")),
     ]
@@ -126,7 +127,7 @@ def render(r: dict, meta: dict, arts: dict) -> str:
         parts.append(f'<h2>أولويات بلا أخبار</h2><p>{"، ".join(esc(names.get(c, c)) for c in r["silentPriorities"])}</p>')
     parts.append(f'<h2>المصادر</h2><p>{"، ".join(f"{esc(s["nameAr"])} ({fmt(s["count"])})" for s in r["sources"]) or "—"}</p>')
     parts.append(f'<p class="note">رصد إخباري لما نُشر عن أولويات رؤية عُمان 2040، مصنَّف وفق قواعد موثقة (الإصدار {esc(meta["rulesVersion"])}). '
-                 'الخلاصة مستخلصة من الأخبار المرفقة روابطها.</p>')
+                 'الخلاصة مستخلصة من الأخبار المرفقة روابطها. الأرقام تقيس حجم ما نُشر من أخبار، لا إنجاز الأولويات ولا أداء مؤشراتها.</p>')
     return f'<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>{esc(r["label"])}</title></head><body>{"".join(parts)}</body></html>'
 
 
