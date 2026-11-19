@@ -366,7 +366,7 @@ async function viewReports(q) {
   if (id) return viewReport(id);
   const reps = S.meta.reports;
   const list = (t) => reps.filter((r) => r.type === t).slice().reverse().map((r) => `<a href="#/reports?id=${r.id}"><span>${esc(r.label)}${r.partial ? ' <span class="chip t">جارٍ</span>' : ""}</span><b>${fmt(r.total)} خبر</b></a>`).join("");
-  return `<h1>التقارير</h1><p class="sub">تُبنى تلقائيًا بعد كل تحديث. الأسبوع يبدأ الأحد. يمكن طباعة أي تقرير أو حفظه PDF من زر الطباعة.</p>
+  return `<h1>التقارير</h1><p class="sub">تُبنى تلقائيًا بعد كل تحديث. الأسبوع يبدأ الأحد. يمكن تنزيل أي تقرير PDF جاهزًا من داخله.</p>
   <div class="grid g2"><div class="card rep-list"><h2>التقارير الأسبوعية</h2>${list("week")}</div><div class="card rep-list"><h2>التقارير الشهرية</h2>${list("month")}</div></div>`;
 }
 async function viewReport(id) {
@@ -374,8 +374,8 @@ async function viewReport(id) {
   const kind = r.type === "week" ? "الأسبوعي" : "الشهري";
   const ch = (a, b) => (b ? `<span class="${a >= b ? "up" : "down"}">${a >= b ? "+" : ""}${fmt(a - b)}</span>` : "");
   const pr = r.priorities.slice().sort((a, b) => b.count - a.count);
-  setTimeout(() => ($("#print").onclick = () => window.print()));
-  return `<div class="row noprint"><a href="#/reports">→ كل التقارير</a><span class="spacer"></span><button class="btn p" id="print">طباعة / PDF</button></div>
+  setTimeout(() => { const b = $("#print"); if (b) b.onclick = () => window.print(); });
+  return `<div class="row noprint"><a href="#/reports">→ كل التقارير</a><span class="spacer"></span><a class="btn p" id="pdf" href="data/reports/${esc(id)}.pdf?v=${encodeURIComponent(S.meta.builtAt)}" download="${esc("حراك-الرؤية-" + r.label)}.pdf" target="_blank" rel="noopener">تنزيل PDF</a><button class="btn" id="print">طباعة</button></div>
   <div class="card rep" style="margin-top:10px">
     <h1>حراك أخبار رؤية عُمان 2040 — التقرير ${kind}</h1><p class="sub">${esc(r.label)}${r.partial ? " — حتى الآن" : ""}</p>
     <div class="grid g3"><div class="kpi"><div class="l">أخبار مرتبطة بالرؤية</div><div class="v">${fmt(r.total)}</div><div class="d">السابقة ${fmt(r.prevTotal)} ${ch(r.total, r.prevTotal)}</div></div>
@@ -499,6 +499,7 @@ async function boot() {
   $("#foot").innerHTML = `آخر تحديث للبيانات: ${new Date(S.meta.builtAt).toLocaleString("ar-OM-u-nu-latn")} · ${fmt(S.meta.totals.counted)} خبرًا محتسبًا · قواعد ${esc(S.meta.rulesVersion)}`;
   saveDrafts(drafts());
   window.addEventListener("hashchange", () => { route(); window.scrollTo(0, 0); });
+  window.addEventListener("beforeprint", () => document.querySelectorAll("details").forEach((d) => (d.open = true)));
   route();
 }
 boot();

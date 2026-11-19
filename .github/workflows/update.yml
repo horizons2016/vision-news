@@ -69,6 +69,13 @@ jobs:
       - name: بناء البيانات والتقارير
         run: python scripts/build.py
 
+      - name: ملفات PDF للتقارير
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y -qq libpango-1.0-0 libpangoft2-1.0-0 >/dev/null
+          pip install -q "weasyprint>=62"
+          python scripts/pdf_reports.py
+
       - name: حفظ الأرشيف والتقارير في المستودع
         run: |
           git config user.name "vision-news-bot"
